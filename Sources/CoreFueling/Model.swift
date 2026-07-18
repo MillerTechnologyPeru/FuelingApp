@@ -12,8 +12,8 @@ public extension Model {
         Model(
             entities:
                 Site.self,
-            FuelProduct.self,
-            FuelOption.self
+                FuelProduct.self,
+                FuelOption.self
         )
     }
 }
