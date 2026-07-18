@@ -37,6 +37,7 @@ let package = Package(
             name: "FuelingAndroid",
             dependencies: [
                 .product(name: "FuelingModel", package: "FuelingApp"),
+                .product(name: "FuelingAPI", package: "FuelingApp"),
                 .product(name: "CoreFueling", package: "FuelingApp"),
                 .product(
                     name: "CoreModel",
