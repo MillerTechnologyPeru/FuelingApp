@@ -16,11 +16,11 @@ public extension Store {
     ///
     /// - Parameters:
     ///   - name: Name of the persistent container.
-    ///   - siteService: Network transport, or `nil` for offline use.
+    ///   - locationService: Network transport, or `nil` for offline use.
     ///   - isStoredInMemoryOnly: Use a transient in-memory store (previews, playgrounds, tests).
     convenience init(
         named name: String = "Fueling",
-        siteService: (any SiteService)? = nil,
+        locationService: (any LocationService)? = nil,
         isStoredInMemoryOnly: Bool = false
     ) throws {
         var storeDescriptions = [NSPersistentStoreDescription]()
@@ -38,7 +38,7 @@ public extension Store {
         self.init(
             storage: storage,
             viewContext: try storage.viewContext,
-            siteService: siteService
+            locationService: locationService
         )
     }
 }
