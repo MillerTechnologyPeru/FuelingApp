@@ -22,7 +22,7 @@ struct StoreTests {
         )
         // download and persist all sites
         let ids = try await store.locations()
-        #expect(ids.count == MockFuelingAPIClient.locations.count)
+        #expect(ids.count == MockHTTPClient.locations.count)
         #expect(store.lastSitesRefresh != nil)
         // fetch from storage
         let sites = try await store.storage.fetch(Site.self, search: nil)
@@ -87,7 +87,7 @@ struct StoreTests {
         // wait for the load task to finish
         try await Task.sleep(nanoseconds: 2_000_000_000)
         #expect(viewModel.state == .loaded)
-        #expect(viewModel.sites.count == MockFuelingAPIClient.locations.count)
+        #expect(viewModel.sites.count == MockHTTPClient.locations.count)
         // nearest site first
         #expect(viewModel.sites.first?.id == 15)
         #expect(viewModel.distance(to: viewModel.sites.first!) == "Here")
