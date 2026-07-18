@@ -2,6 +2,12 @@
 //  APILocationService.swift
 //  FuelingModel
 //
+//  `FuelingAPI` (and `HTTPTypesFoundation`'s conditional `FoundationNetworking`
+//  import beneath it) is excluded from the Android build entirely — see the
+//  `nonAndroidPlatforms` condition on this target's dependencies in the
+//  package manifest — so this file, which only exists to adapt that transport,
+//  is excluded to match.
+#if canImport(FuelingAPI)
 
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -85,4 +91,6 @@ public extension APILocationService where Client == URLSession {
         )
     }
 }
+#endif
+
 #endif
