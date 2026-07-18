@@ -32,14 +32,14 @@ public final class Store {
     /// Synchronous main-actor context for UI reads.
     public let viewContext: any ViewContext
 
-    /// Network transport for sites and fuel prices, or `nil` for offline use.
-    internal let siteService: (any SiteService)?
+    /// Network transport for locations and fuel prices, or `nil` for offline use.
+    internal let locationService: (any LocationService)?
 
     /// Current user location, injected by the app.
     public var userLocation: LocationCoordinate?
 
-    /// Last time the full site list was refreshed from the network.
-    public internal(set) var lastSitesRefresh: Date?
+    /// Last time the full location list was refreshed from the network.
+    public internal(set) var lastLocationsRefresh: Date?
 
     /// Interval after which cached data is considered stale.
     public var staleInterval: TimeInterval = 60 * 60
@@ -49,12 +49,12 @@ public final class Store {
     public init(
         storage: some ModelStorage,
         viewContext: some ViewContext,
-        siteService: (any SiteService)? = nil,
+        locationService: (any LocationService)? = nil,
         userLocation: LocationCoordinate? = nil
     ) {
         self.storage = storage
         self.viewContext = viewContext
-        self.siteService = siteService
+        self.locationService = locationService
         self.userLocation = userLocation
     }
 
@@ -90,18 +90,18 @@ public extension Store {
         objectDidChange()
     }
 
-    /// Mark a site as viewed.
-    func didView(_ id: Site.ID) async throws {
+    /// Mark a location as viewed.
+    func didView(_ id: Location.ID) async throws {
         try await storage.didView(id)
         objectDidChange()
     }
 
-    /// Whether the cached site list should be refreshed from the network.
-    var shouldDownloadSites: Bool {
-        guard siteService != nil else {
+    /// Whether the cached location list should be refreshed from the network.
+    var shouldDownloadLocations: Bool {
+        guard locationService != nil else {
             return false
         }
-        if let lastDate = lastSitesRefresh,
+        if let lastDate = lastLocationsRefresh,
             Date().timeIntervalSince(lastDate) < staleInterval
         {
             return false
