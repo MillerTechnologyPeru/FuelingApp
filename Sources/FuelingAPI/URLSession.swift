@@ -3,6 +3,7 @@
 //  FuelingAPI
 //
 
+#if canImport(Foundation)
 import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
@@ -14,3 +15,4 @@ import HTTPTypesFoundation
 /// ``HTTPClient``. The witness is `URLSession.data(for:)` from
 /// `HTTPTypesFoundation`.
 extension URLSession: HTTPClient {}
+#endif
