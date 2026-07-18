@@ -8,9 +8,22 @@ import FoundationEssentials
 #elseif canImport(Foundation)
 import Foundation
 #endif
+// `sin`/`cos`/`atan2` come from Foundation on non-Embedded platforms; Embedded
+// Swift has no Foundation, so pull them from the platform libm directly.
+#if hasFeature(Embedded)
+#if canImport(WASILibc)
+import WASILibc
+#elseif canImport(Glibc)
+import Glibc
+#elseif canImport(Darwin)
+import Darwin
+#elseif canImport(ucrt)
+import ucrt
+#endif
+#endif
 
 /// Geographic coordinate (latitude / longitude in degrees).
-public struct LocationCoordinate: Equatable, Hashable, Codable, Sendable {
+public struct LocationCoordinate: Equatable, Hashable, Sendable {
 
     /// Latitude in degrees.
     public var latitude: Double
@@ -23,6 +36,11 @@ public struct LocationCoordinate: Equatable, Hashable, Codable, Sendable {
         self.longitude = longitude
     }
 }
+
+// Codable relies on stdlib synthesis, which is unavailable under Embedded Swift.
+#if !hasFeature(Embedded)
+extension LocationCoordinate: Codable {}
+#endif
 
 public extension LocationCoordinate {
 
