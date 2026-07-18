@@ -35,7 +35,13 @@ public extension FuelingError {
         if let error = error as? FuelingError {
             self = error
         } else {
+            // `String(describing:)` needs runtime reflection, which Embedded Swift
+            // lacks; the concrete error type isn't recoverable there.
+            #if hasFeature(Embedded)
+            self = .error("Unknown error")
+            #else
             self = .error(String(describing: error))
+            #endif
         }
     }
 
