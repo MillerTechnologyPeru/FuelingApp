@@ -3,83 +3,67 @@
 //  FuelingAPI
 //
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#elseif canImport(Foundation)
 import Foundation
-#if canImport(FoundationNetworking)
-import FoundationNetworking
 #endif
+import HTTPTypes
+import HTTPTypesFoundation
 import CoreFueling
 
-/// Client for the fueling REST API.
-public protocol FuelingAPIClient: Sendable {
+/// Fueling REST API, implemented over any ``HTTPClient`` transport.
+///
+/// The server base URL is injected per call; nothing is hardcoded.
+public extension HTTPClient {
 
     /// Fetch the specified sites, or all sites if empty.
-    func locations(sites: [Site.ID]) async throws(FuelingError) -> [Location]
+    ///
+    /// `GET {server}/v1/locations`
+    func locations(
+        sites: [Site.ID] = [],
+        server: ServerURL,
+        device deviceID: String = "0"
+    ) async throws(FuelingError) -> [Location] {
+        try await request("v1/locations", sites: sites, server: server, device: deviceID)
+    }
 
     /// Fetch fuel prices for the specified sites, or all sites if empty.
-    func fuelPrices(for sites: [Site.ID]) async throws(FuelingError) -> [FuelPrice]
-}
-
-public extension FuelingAPIClient {
-
-    /// Fetch all sites.
-    func locations() async throws(FuelingError) -> [Location] {
-        try await locations(sites: [])
-    }
-}
-
-// MARK: - URLSession Client
-
-/// `URLSession`-backed implementation of ``FuelingAPIClient``.
-///
-/// The server base URL is injected at initialization.
-public struct URLSessionFuelingAPIClient: FuelingAPIClient {
-
-    /// Base URL of the server.
-    public let server: ServerURL
-
-    /// Unique device identifier sent with each request.
-    public let deviceID: String
-
-    internal let session: URLSession
-
-    public init(
+    ///
+    /// `GET {server}/v1/fuelprice`
+    func fuelPrices(
+        for sites: [Site.ID] = [],
         server: ServerURL,
-        deviceID: String = "0",
-        session: URLSession = .shared
-    ) {
-        self.server = server
-        self.deviceID = deviceID
-        self.session = session
-    }
-
-    public func locations(sites: [Site.ID]) async throws(FuelingError) -> [Location] {
-        try await request("v1/locations", sites: sites)
-    }
-
-    public func fuelPrices(for sites: [Site.ID]) async throws(FuelingError) -> [FuelPrice] {
-        try await request("v1/fuelprice", sites: sites)
+        device deviceID: String = "0"
+    ) async throws(FuelingError) -> [FuelPrice] {
+        try await request("v1/fuelprice", sites: sites, server: server, device: deviceID)
     }
 }
 
-internal extension URLSessionFuelingAPIClient {
+internal extension HTTPClient {
 
-    func request<T: Decodable & Sendable>(
+    func request<T: Codable & Sendable>(
         _ path: String,
-        sites: [Site.ID]
+        sites: [Site.ID],
+        server: ServerURL,
+        device deviceID: String
     ) async throws(FuelingError) -> T {
-        let url = url(path: path, sites: sites)
-        var request = URLRequest(url: url)
-        request.setValue(deviceID, forHTTPHeaderField: "Device-ID")
-        let (data, response): (Data, URLResponse)
+        let url = FuelingAPI.url(for: path, sites: sites, server: server)
+        let request = HTTPRequest(
+            method: .get,
+            url: url,
+            headerFields: [
+                .deviceID: deviceID
+            ]
+        )
+        let (data, response): (Data, HTTPResponse)
         do {
-            (data, response) = try await session.data(for: request)
+            (data, response) = try await self.data(for: request)
         } catch {
             throw FuelingError(error)
         }
-        if let httpResponse = response as? HTTPURLResponse {
-            guard httpResponse.statusCode == 200 else {
-                throw .invalidStatusCode(httpResponse.statusCode)
-            }
+        guard response.status == .ok else {
+            throw .invalidStatusCode(response.status.code)
         }
         let apiResponse: APIResponse<T>
         do {
@@ -89,17 +73,30 @@ internal extension URLSessionFuelingAPIClient {
         }
         return try apiResponse.get()
     }
+}
 
-    func url(path: String, sites: [Site.ID]) -> URL {
-        var components = URLComponents(
-            url: URL(server: server).appendingPathComponent(path),
-            resolvingAgainstBaseURL: false
-        )!
-        if sites.isEmpty == false {
-            components.queryItems = sites.map {
-                URLQueryItem(name: "siteIds", value: Site.ID.Prefixed(id: $0).rawValue)
-            }
+/// Build the request URL for an endpoint.
+internal func url(
+    for path: String,
+    sites: [Site.ID],
+    server: ServerURL
+) -> URL {
+    var components = URLComponents(
+        url: URL(server: server).appendingPathComponent(path),
+        resolvingAgainstBaseURL: false
+    )!
+    if sites.isEmpty == false {
+        components.queryItems = sites.map {
+            URLQueryItem(name: "siteIds", value: Site.ID.Prefixed(id: $0).rawValue)
         }
-        return components.url!
+    }
+    return components.url!
+}
+
+public extension HTTPField.Name {
+
+    /// Unique device identifier header sent with each request.
+    static var deviceID: HTTPField.Name {
+        .init("Device-ID")!
     }
 }
