@@ -288,18 +288,27 @@ public extension LocationDetailViewModel {
         internal init(_ entity: CoreFueling.FuelProduct) {
             self.id = entity.id
             self.name = entity.descriptionText
-            self.price = Self.priceFormatter.string(from: entity.price as NSNumber)
-                ?? "$" + entity.price.description
+            self.price = Self.formatPrice(entity.price)
             self.updated = entity.updated
         }
 
-        internal static let priceFormatter: NumberFormatter = {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .currency
-            formatter.currencyCode = "USD"
-            formatter.minimumFractionDigits = 3
-            formatter.maximumFractionDigits = 3
-            return formatter
-        }()
+        /// Formats a price as USD with 3 decimal places (e.g. "$3.899").
+        ///
+        /// Deliberately avoids `NumberFormatter`, which lives in full
+        /// `Foundation` (not `FoundationEssentials`) — this keeps `FuelingModel`
+        /// buildable wherever only the lean subset is linked, e.g. Android,
+        /// which this project's `#if canImport(FoundationEssentials)` /
+        /// `#elseif canImport(Foundation)` import guards prefer whenever it's
+        /// available rather than always falling back to full `Foundation`.
+        internal static func formatPrice(_ price: Double) -> String {
+            let milliCents = Int((price * 1000).rounded())
+            let whole = abs(milliCents) / 1000
+            var fraction = String(abs(milliCents) % 1000)
+            while fraction.count < 3 {
+                fraction = "0" + fraction
+            }
+            let sign = milliCents < 0 ? "-" : ""
+            return "\(sign)$\(whole).\(fraction)"
+        }
     }
 }
