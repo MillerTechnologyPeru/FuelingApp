@@ -1,5 +1,5 @@
 //
-//  SiteDetailView.swift
+//  LocationDetailView.swift
 //  FuelingUI
 //
 
@@ -9,30 +9,30 @@ import SwiftUI
 import CoreFueling
 import FuelingModel
 
-/// Detail screen for a single site, including current fuel prices.
-public struct SiteDetailView: View {
+/// Detail screen for a single location, including current fuel prices.
+public struct LocationDetailView: View {
 
     @Environment(Store.self)
     private var store: Store
 
-    internal let site: Site.ID
+    internal let location: Location.ID
 
-    public init(site: Site.ID) {
-        self.site = site
+    public init(location: Location.ID) {
+        self.location = location
     }
 
     public var body: some View {
-        LazyViewModel(viewModel: SiteDetailViewModel(id: site, store: store)) {
+        LazyViewModel(viewModel: LocationDetailViewModel(id: location, store: store)) {
             ViewModelView(viewModel: $0)
         }
     }
 }
 
-internal extension SiteDetailView {
+internal extension LocationDetailView {
 
     struct ViewModelView: View {
 
-        var viewModel: SiteDetailViewModel
+        var viewModel: LocationDetailViewModel
 
         var body: some View {
             StateView(
@@ -46,11 +46,11 @@ internal extension SiteDetailView {
     }
 }
 
-internal extension SiteDetailView {
+internal extension LocationDetailView {
 
     struct StateView: View {
 
-        let state: SiteDetailViewModel.State
+        let state: LocationDetailViewModel.State
 
         let distance: String?
 
@@ -68,11 +68,11 @@ internal extension SiteDetailView {
                     Button("Retry", action: reload)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            case .loading(.some(let site)),
-                .loaded(let site),
-                .error(.some(let site), _):
+            case .loading(.some(let location)),
+                .loaded(let location),
+                .error(.some(let location), _):
                 ContentView(
-                    site: site,
+                    location: location,
                     distance: distance,
                     isLoading: state.isLoading,
                     reload: reload
@@ -82,7 +82,7 @@ internal extension SiteDetailView {
     }
 }
 
-internal extension SiteDetailViewModel.State {
+internal extension LocationDetailViewModel.State {
 
     var isLoading: Bool {
         if case .loading = self { return true }
@@ -90,11 +90,11 @@ internal extension SiteDetailViewModel.State {
     }
 }
 
-internal extension SiteDetailView {
+internal extension LocationDetailView {
 
     struct ContentView: View {
 
-        let site: SiteDetailViewModel.SiteData
+        let location: LocationDetailViewModel.LocationData
 
         let distance: String?
 
@@ -108,7 +108,7 @@ internal extension SiteDetailView {
                     // Header
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Text(verbatim: site.name)
+                            Text(verbatim: location.name)
                                 .font(.title2.weight(.semibold))
                             Spacer()
                             if let distance {
@@ -117,11 +117,11 @@ internal extension SiteDetailView {
                                     .foregroundStyle(.secondary)
                             }
                         }
-                        Text(verbatim: site.address)
+                        Text(verbatim: location.address)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                         HStack {
-                            ForEach(site.directions) { directions in
+                            ForEach(location.directions) { directions in
                                 Link(directions.title, destination: directions.url)
                                     .font(.subheadline)
                             }
@@ -129,10 +129,10 @@ internal extension SiteDetailView {
                     }
 
                     // Current fuel prices
-                    if site.fuelProducts.isEmpty == false {
+                    if location.fuelProducts.isEmpty == false {
                         FuelPricesView(
-                            fuelProducts: site.fuelProducts,
-                            fuelLanes: site.fuelLanes
+                            fuelProducts: location.fuelProducts,
+                            fuelLanes: location.fuelLanes
                         )
                     } else if isLoading {
                         ProgressView("Loading fuel prices…")
@@ -140,9 +140,9 @@ internal extension SiteDetailView {
                     }
 
                     // Fuel options
-                    if site.fuelOptions.isEmpty == false {
+                    if location.fuelOptions.isEmpty == false {
                         SectionView(title: "Fueling Options") {
-                            ForEach(site.fuelOptions, id: \.self) { option in
+                            ForEach(location.fuelOptions, id: \.self) { option in
                                 Label(option, systemImage: "fuelpump")
                                     .font(.subheadline)
                             }
@@ -151,27 +151,27 @@ internal extension SiteDetailView {
 
                     // Amenity counts
                     SectionView(title: "Amenities") {
-                        DetailRow(title: "Fuel Lanes", value: site.fuelLanes.description)
-                        DetailRow(title: "Truck Parking Spaces", value: site.truckParkingSpaces.description)
-                        DetailRow(title: "Showers", value: site.showers.description)
+                        DetailRow(title: "Fuel Lanes", value: location.fuelLanes.description)
+                        DetailRow(title: "Truck Parking Spaces", value: location.truckParkingSpaces.description)
+                        DetailRow(title: "Showers", value: location.showers.description)
                     }
 
                     // Additional details
-                    SectionView(title: "Site Details") {
-                        ForEach(site.details) { detail in
+                    SectionView(title: "Location Details") {
+                        ForEach(location.details) { detail in
                             DetailRow(title: detail.title, value: detail.value)
                         }
                     }
                 }
                 .padding()
             }
-            .navigationTitle(Text(verbatim: site.name))
+            .navigationTitle(Text(verbatim: location.name))
             .refreshable { reload() }
         }
     }
 }
 
-internal extension SiteDetailView {
+internal extension LocationDetailView {
 
     struct SectionView<Content: View>: View {
 
@@ -216,7 +216,7 @@ internal extension SiteDetailView {
 
     struct FuelPricesView: View {
 
-        let fuelProducts: [SiteDetailViewModel.FuelProduct]
+        let fuelProducts: [LocationDetailViewModel.FuelProduct]
 
         let fuelLanes: Int
 
@@ -253,11 +253,11 @@ internal extension SiteDetailView {
 #if DEBUG
 #Preview {
     let store = try! Store(
-        siteService: .mock,
+        locationService: .mock,
         isStoredInMemoryOnly: true
     )
     return NavigationStack {
-        SiteDetailView(site: 15)
+        LocationDetailView(location: 15)
     }
     .environment(store)
 }
