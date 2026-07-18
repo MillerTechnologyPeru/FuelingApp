@@ -32,13 +32,13 @@ struct FuelingApp: App {
     /// Uses the bundled sample data. To run against a real deployment,
     /// inject the server base URL instead:
     ///
-    ///     let service = APISiteService(server: ServerURL(rawValue: "https://example.com")!)
-    ///     let store = try Store(siteService: service)
+    ///     let service = APILocationService(server: ServerURL(rawValue: "https://example.com")!)
+    ///     let store = try Store(locationService: service)
     ///
     @MainActor
     private func loadStore() throws -> Store {
         let store = try Store(
-            siteService: .mock,
+            locationService: .mock,
             isStoredInMemoryOnly: true
         )
         // simulated user position near the first sample site
