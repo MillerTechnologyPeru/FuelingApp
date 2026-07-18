@@ -15,8 +15,6 @@ and delivered as a Swift Playground app (no Xcode project).
 | `FuelingModel` | `Store` (persistence + network composition root) and `@Observable` view models for the site list and site detail. |
 | `FuelingUI` | SwiftUI views: `SitesView` (list/map toggle), `SiteListView`, `SiteMapView`, `SiteDetailView`. |
 
-See [PLAN.md](PLAN.md) for the architecture.
-
 ## Running the app
 
 Open `Fueling.swiftpm` in Xcode or Swift Playgrounds and run. The demo uses
