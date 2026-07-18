@@ -12,7 +12,7 @@ import Foundation
 /// Wire representation of a fuel price returned by `GET /v1/fuelprice`.
 public struct FuelPrice: Codable, Equatable, Hashable, Sendable {
 
-    /// Zero-padded site identifier.
+    /// Zero-padded location identifier.
     public let siteID: String
 
     /// Fuel price at the specified site.
