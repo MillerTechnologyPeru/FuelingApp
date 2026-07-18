@@ -36,6 +36,15 @@ public extension Site.Query {
     typealias StringOperator = FetchRequest.Predicate.StringOperator
 }
 
+public extension FetchRequest.Predicate {
+
+    enum StringOperator: Equatable, Hashable, Sendable {
+
+        case equalTo
+        case contains
+    }
+}
+
 public extension Site.Query {
 
     /// Match sites whose name, city, directions, address, zip code or state contain the text.
