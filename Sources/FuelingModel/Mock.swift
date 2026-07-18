@@ -31,28 +31,28 @@ public struct MockHTTPClient: HTTPClient {
         else {
             throw .invalidResponse
         }
-        let sites = (components.queryItems ?? [])
+        let ids = (components.queryItems ?? [])
             .filter { $0.name == "siteIds" }
             .compactMap { $0.value }
         let body: Data
         switch components.path {
         case "/v1/locations":
-            body = try Self.encode(Self.locations, sites: sites, id: \.siteID)
+            body = try Self.encode(Self.locations, ids: ids, id: \.siteID)
         case "/v1/fuelprice":
-            body = try Self.encode(Self.fuelPrices, sites: sites, id: \.siteID)
+            body = try Self.encode(Self.fuelPrices, ids: ids, id: \.siteID)
         default:
             return (Data(), HTTPResponse(status: .notFound))
         }
         return (body, HTTPResponse(status: .ok))
     }
 
-    /// Filter by requested site IDs and wrap in the response envelope.
+    /// Filter by requested location IDs and wrap in the response envelope.
     internal static func encode<T: Codable & Sendable>(
         _ values: [T],
-        sites: [String],
+        ids: [String],
         id: (T) -> String
     ) throws(FuelingError) -> Data {
-        let filtered = sites.isEmpty ? values : values.filter { sites.contains(id($0)) }
+        let filtered = ids.isEmpty ? values : values.filter { ids.contains(id($0)) }
         let response = APIResponse(data: filtered)
         do {
             return try JSONEncoder().encode(response)
@@ -62,11 +62,11 @@ public struct MockHTTPClient: HTTPClient {
     }
 }
 
-public extension SiteService where Self == APISiteService<MockHTTPClient> {
+public extension LocationService where Self == APILocationService<MockHTTPClient> {
 
     /// Sample-data service for previews and playgrounds.
-    static var mock: APISiteService<MockHTTPClient> {
-        APISiteService(
+    static var mock: APILocationService<MockHTTPClient> {
+        APILocationService(
             client: MockHTTPClient(),
             server: .localhost()
         )
@@ -75,8 +75,8 @@ public extension SiteService where Self == APISiteService<MockHTTPClient> {
 
 public extension MockHTTPClient {
 
-    static let locations: [Location] = [
-        Location(
+    static let locations: [GetLocation] = [
+        GetLocation(
             siteID: "0015",
             name: "Seville Travel Center",
             address: "8834 Lake Road",
@@ -93,7 +93,7 @@ public extension MockHTTPClient {
             privateShowers: 10,
             storeBrand: "Roadstar"
         ),
-        Location(
+        GetLocation(
             siteID: "0023",
             name: "Columbus East Fuel Stop",
             address: "6161 Interstate Parkway",
@@ -110,7 +110,7 @@ public extension MockHTTPClient {
             privateShowers: 8,
             storeBrand: "Roadstar"
         ),
-        Location(
+        GetLocation(
             siteID: "0042",
             name: "Toledo Junction Travel Plaza",
             address: "3483 Libbey Road",
@@ -127,7 +127,7 @@ public extension MockHTTPClient {
             privateShowers: 6,
             storeBrand: "Summit"
         ),
-        Location(
+        GetLocation(
             siteID: "0057",
             name: "Steel City Truck Plaza",
             address: "1150 Smithfield Street",
@@ -144,7 +144,7 @@ public extension MockHTTPClient {
             privateShowers: 4,
             storeBrand: "Summit"
         ),
-        Location(
+        GetLocation(
             siteID: "0068",
             name: "Crossroads Travel Center",
             address: "5720 West Morris Street",
