@@ -1,5 +1,5 @@
 //
-//  SiteListView.swift
+//  LocationListView.swift
 //  FuelingUI
 //
 
@@ -9,40 +9,40 @@ import SwiftUI
 import CoreFueling
 import FuelingModel
 
-/// Scrolling list of fueling sites.
-public struct SiteListView: View {
+/// Scrolling list of fueling locations.
+public struct LocationListView: View {
 
     @Environment(Store.self)
     private var store: Store
 
-    internal var selection: (Site.ID) -> ()
+    internal var selection: (Location.ID) -> ()
 
     public init(
-        selection: @escaping (Site.ID) -> ()
+        selection: @escaping (Location.ID) -> ()
     ) {
         self.selection = selection
     }
 
     public var body: some View {
-        LazyViewModel(viewModel: SitesViewModel(store: store)) {
+        LazyViewModel(viewModel: LocationsViewModel(store: store)) {
             ViewModelView(viewModel: $0, selection: selection)
         }
     }
 }
 
-internal extension SiteListView {
+internal extension LocationListView {
 
     struct ViewModelView: View {
 
         @Bindable
-        var viewModel: SitesViewModel
+        var viewModel: LocationsViewModel
 
-        let selection: (Site.ID) -> ()
+        let selection: (Location.ID) -> ()
 
         var body: some View {
             StateView(
                 state: viewModel.state,
-                sites: viewModel.sites,
+                locations: viewModel.locations,
                 distance: viewModel.distance(to:),
                 selection: selection,
                 reload: viewModel.reload
@@ -54,17 +54,17 @@ internal extension SiteListView {
     }
 }
 
-internal extension SiteListView {
+internal extension LocationListView {
 
     struct StateView: View {
 
-        let state: SitesViewModel.State
+        let state: LocationsViewModel.State
 
-        let sites: [Site]
+        let locations: [Location]
 
-        let distance: (Site) -> String?
+        let distance: (Location) -> String?
 
-        let selection: (Site.ID) -> ()
+        let selection: (Location.ID) -> ()
 
         let reload: () -> ()
 
@@ -82,7 +82,7 @@ internal extension SiteListView {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .loaded:
                 ContentView(
-                    sites: sites,
+                    locations: locations,
                     distance: distance,
                     selection: selection,
                     reload: reload
@@ -92,33 +92,33 @@ internal extension SiteListView {
     }
 }
 
-internal extension SiteListView {
+internal extension LocationListView {
 
     struct ContentView: View {
 
-        let sites: [Site]
+        let locations: [Location]
 
-        let distance: (Site) -> String?
+        let distance: (Location) -> String?
 
-        let selection: (Site.ID) -> ()
+        let selection: (Location.ID) -> ()
 
         let reload: () -> ()
 
         var body: some View {
-            if sites.isEmpty {
-                Text("No sites found")
+            if locations.isEmpty {
+                Text("No locations found")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
                     LazyVStack {
-                        ForEach(sites) { site in
+                        ForEach(locations) { location in
                             Button(
-                                action: { selection(site.id) },
+                                action: { selection(location.id) },
                                 label: {
-                                    SiteCardView(
-                                        name: site.name,
-                                        distance: distance(site),
-                                        address: site.postalAddress
+                                    LocationCardView(
+                                        name: location.name,
+                                        distance: distance(location),
+                                        address: location.postalAddress
                                     )
                                 }
                             )
@@ -138,12 +138,12 @@ internal extension SiteListView {
 #if DEBUG
 #Preview {
     let store = try! Store(
-        siteService: .mock,
+        locationService: .mock,
         isStoredInMemoryOnly: true
     )
     return NavigationStack {
-        SiteListView(selection: { _ in })
-            .navigationTitle(Text("Sites"))
+        LocationListView(selection: { _ in })
+            .navigationTitle(Text("Locations"))
     }
     .environment(store)
 }
