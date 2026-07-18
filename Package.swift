@@ -34,6 +34,10 @@ let package = Package(
         .package(
             url: "https://github.com/PureSwift/CoreModel.git",
             from: "2.8.0"
+        ),
+        .package(
+            url: "https://github.com/apple/swift-http-types",
+            from: "1.4.0"
         )
     ],
     targets: [
@@ -53,6 +57,14 @@ let package = Package(
                 .product(
                     name: "CoreModel",
                     package: "CoreModel"
+                ),
+                .product(
+                    name: "HTTPTypes",
+                    package: "swift-http-types"
+                ),
+                .product(
+                    name: "HTTPTypesFoundation",
+                    package: "swift-http-types"
                 )
             ]
         ),
@@ -64,6 +76,10 @@ let package = Package(
                 .product(
                     name: "CoreModel",
                     package: "CoreModel"
+                ),
+                .product(
+                    name: "HTTPTypes",
+                    package: "swift-http-types"
                 ),
                 .product(
                     name: "CoreDataModel",
