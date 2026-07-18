@@ -1,7 +1,16 @@
 // swift-tools-version: 6.0
 import PackageDescription
+import class Foundation.ProcessInfo
 
 let darwin: [Platform] = [.macOS, .iOS, .tvOS, .watchOS, .visionOS, .macCatalyst]
+
+// The Android jextract/JNI build (see Android/fueling-jni/build.gradle.kts) cross-compiles
+// this package with this flag set, so every library in the graph — including this package's
+// own products — builds as its own `.so`, staged into the app's `jniLibs` alongside
+// CoreModel/CoreModel-SQLite/SQLite's. Unset (the default), library products keep SwiftPM's
+// automatic linkage, which is static for every consumer in this repo.
+let dynamicLibrary = ProcessInfo.processInfo.environment["SWIFT_BUILD_DYNAMIC_LIBRARY"] == "1"
+let libraryType: PackageDescription.Product.Library.LibraryType? = dynamicLibrary ? .dynamic : nil
 
 let package = Package(
     name: "FuelingApp",
@@ -15,18 +24,22 @@ let package = Package(
     products: [
         .library(
             name: "CoreFueling",
+            type: libraryType,
             targets: ["CoreFueling"]
         ),
         .library(
             name: "FuelingAPI",
+            type: libraryType,
             targets: ["FuelingAPI"]
         ),
         .library(
             name: "FuelingModel",
+            type: libraryType,
             targets: ["FuelingModel"]
         ),
         .library(
             name: "FuelingUI",
+            type: libraryType,
             targets: ["FuelingUI"]
         )
     ],
