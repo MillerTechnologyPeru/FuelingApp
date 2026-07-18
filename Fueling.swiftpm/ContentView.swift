@@ -11,18 +11,18 @@ import FuelingUI
 struct ContentView: View {
 
     @State
-    private var navigationPath = [Site.ID]()
+    private var navigationPath = [Location.ID]()
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
-            SitesView(
-                selection: { site in
-                    navigationPath.append(site)
+            LocationsView(
+                selection: { location in
+                    navigationPath.append(location)
                 }
             )
-            .navigationTitle(Text("Sites"))
-            .navigationDestination(for: Site.ID.self) {
-                SiteDetailView(site: $0)
+            .navigationTitle(Text("Locations"))
+            .navigationDestination(for: Location.ID.self) {
+                LocationDetailView(location: $0)
             }
         }
     }
