@@ -15,6 +15,9 @@ and delivered as a Swift Playground app (no Xcode project).
 | `FuelingModel` | `Store` (persistence + network composition root) and `@Observable` view models for the location list and location detail. |
 | `FuelingUI` | SwiftUI views: `LocationsView` (list/map toggle), `LocationListView`, `LocationMapView`, `LocationDetailView`. |
 
+`Store` supports two storage backends: CoreData (`Store(named:)`, Darwin only)
+and SQLite (`Store(sqliteDatabase:)`, cross-platform — used on Android/Linux).
+
 ## Running the app
 
 Open `Fueling.swiftpm` in Xcode or Swift Playgrounds and run. The demo uses
@@ -45,6 +48,18 @@ LocationsView { locationID in
 LocationDetailView(location: locationID)
     .environment(store)
 ```
+
+## Android
+
+`Android/` is a separate Swift package (`FuelingAndroid`) and Gradle project
+that exports `FuelingModel`/`CoreFueling` to Kotlin over JNI using
+[swift-java](https://github.com/swiftlang/swift-java) (jextract). See
+`Android/README.md` for the build/toolchain requirements.
+
+The Android build excludes `FuelingAPI` (and its `HTTPTypesFoundation`/
+`FoundationNetworking` dependency) from the dependency graph entirely — no
+network transport is wired up there yet, so the app persists to a local
+SQLite cache seeded with sample data and works fully offline.
 
 ## Tests
 
