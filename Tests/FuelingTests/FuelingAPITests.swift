@@ -5,8 +5,10 @@
 
 import Foundation
 import Testing
+import HTTPTypes
 import CoreModel
 import CoreFueling
+import FuelingModel
 @testable import FuelingAPI
 
 @Suite
@@ -23,13 +25,38 @@ struct FuelingAPITests {
 
     @Test
     func requestURL() {
-        let client = URLSessionFuelingAPIClient(
-            server: ServerURL(rawValue: "https://example.com")!
-        )
-        let url = client.url(path: "v1/fuelprice", sites: [15, 23])
+        let server = ServerURL(rawValue: "https://example.com")!
+        let url = FuelingAPI.url(for: "v1/fuelprice", sites: [15, 23], server: server)
         #expect(url.absoluteString == "https://example.com/v1/fuelprice?siteIds=0015&siteIds=0023")
-        let allURL = client.url(path: "v1/locations", sites: [])
+        let allURL = FuelingAPI.url(for: "v1/locations", sites: [], server: server)
         #expect(allURL.absoluteString == "https://example.com/v1/locations")
+    }
+
+    @Test
+    func httpClient() async throws {
+        // exercise the protocol-extension API end to end over a mock transport
+        let client = MockHTTPClient(delay: 0)
+        let server = ServerURL.localhost()
+        let locations = try await client.locations(server: server)
+        #expect(locations.count == MockHTTPClient.locations.count)
+        let filtered = try await client.locations(sites: [15], server: server)
+        #expect(filtered.map { $0.id } == [15])
+        let prices = try await client.fuelPrices(for: [15], server: server)
+        #expect(prices.isEmpty == false)
+        #expect(prices.allSatisfy { $0.site == 15 })
+    }
+
+    @Test
+    func httpClientNotFound() async throws {
+        let client = MockHTTPClient(delay: 0)
+        let request = HTTPRequest(
+            method: .get,
+            scheme: "http",
+            authority: "localhost:8080",
+            path: "/v1/unknown"
+        )
+        let (_, response) = try await client.data(for: request)
+        #expect(response.status == .notFound)
     }
 
     @Test
