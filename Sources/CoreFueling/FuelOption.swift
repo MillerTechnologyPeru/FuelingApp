@@ -10,7 +10,7 @@ import Foundation
 #endif
 import CoreModel
 
-/// A fueling option offered by sites (diesel, DEF, etc).
+/// A fueling option offered by locations (diesel, DEF, etc).
 @Entity
 public struct FuelOption: Equatable, Hashable, Codable, Identifiable, Sendable {
 
@@ -19,19 +19,19 @@ public struct FuelOption: Equatable, Hashable, Codable, Identifiable, Sendable {
     @Attribute
     public var name: String
 
-    @Relationship(destination: Site.self, inverse: .fuelOptions)
-    public var sites: [Site.ID]
+    @Relationship(destination: Location.self, inverse: .fuelOptions)
+    public var locations: [Location.ID]
 
-    public init(id: ID, name: String, sites: [Site.ID] = []) {
+    public init(id: ID, name: String, locations: [Location.ID] = []) {
         self.id = id
         self.name = name
-        self.sites = sites
+        self.locations = locations
     }
 
     public enum CodingKeys: String, CodingKey {
         case id
         case name
-        case sites
+        case locations
     }
 }
 
