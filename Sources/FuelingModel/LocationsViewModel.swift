@@ -1,5 +1,5 @@
 //
-//  SitesViewModel.swift
+//  LocationsViewModel.swift
 //  FuelingModel
 //
 
@@ -12,10 +12,10 @@ import Observation
 import CoreModel
 import CoreFueling
 
-/// View model backing the site list and map.
+/// View model backing the location list and map.
 @MainActor
 @Observable
-public final class SitesViewModel {
+public final class LocationsViewModel {
 
     // MARK: - Initialization
 
@@ -34,9 +34,9 @@ public final class SitesViewModel {
 
     public private(set) var state: State = .loading
 
-    /// Sites matching the current search, sorted by distance when a user
+    /// Locations matching the current search, sorted by distance when a user
     /// location is available.
-    public private(set) var sites: [Site] = []
+    public private(set) var locations: [Location] = []
 
     /// Text filter applied to name, city, address, zip code and state.
     public var searchText = "" {
@@ -77,7 +77,7 @@ public final class SitesViewModel {
         task = nil
     }
 
-    /// Refresh sites from the network (when stale) and re-apply the filter.
+    /// Refresh locations from the network (when stale) and re-apply the filter.
     public func reload() {
         guard task == nil else {
             return
@@ -89,8 +89,8 @@ public final class SitesViewModel {
                 self.task = nil
             }
             do {
-                try await self.downloadSites()
-                try await self.fetchSites()
+                try await self.downloadLocations()
+                try await self.fetchLocations()
             } catch is CancellationError {
                 return
             } catch {
@@ -110,7 +110,7 @@ public final class SitesViewModel {
             do {
                 // debounce while typing
                 try await Task.sleep(nanoseconds: 250_000_000)
-                try await self.fetchSites()
+                try await self.fetchLocations()
             } catch is CancellationError {
                 return
             } catch {
@@ -119,36 +119,36 @@ public final class SitesViewModel {
         }
     }
 
-    /// Fetch sites from storage with the current filter.
-    private func fetchSites() async throws {
-        var sites = try await store.storage.fetch(Site.self, search: searchText)
+    /// Fetch locations from storage with the current filter.
+    private func fetchLocations() async throws {
+        var locations = try await store.storage.fetch(Location.self, search: searchText)
         if let userLocation = store.userLocation {
-            sites.sort {
+            locations.sort {
                 $0.coordinates.distance(to: userLocation) < $1.coordinates.distance(to: userLocation)
             }
         } else {
-            sites.sort { $0.name < $1.name }
+            locations.sort { $0.name < $1.name }
         }
-        self.sites = sites
+        self.locations = locations
         self.state = .loaded
     }
 
-    private func downloadSites() async throws {
-        guard store.shouldDownloadSites else { return }
+    private func downloadLocations() async throws {
+        guard store.shouldDownloadLocations else { return }
         try await store.locations()
     }
 
     private func setError(_ error: any Swift.Error) {
-        sites = []
+        locations = []
         state = .error(.init(error))
     }
 
-    /// Formatted distance from the user location to the site.
-    public func distance(to site: Site) -> String? {
+    /// Formatted distance from the user location to the location.
+    public func distance(to location: Location) -> String? {
         guard let userLocation else {
             return nil
         }
-        let meters = userLocation.distance(to: site.coordinates)
+        let meters = userLocation.distance(to: location.coordinates)
         return Self.distance(for: meters, usesMetric: usesMetric)
     }
 
@@ -174,7 +174,7 @@ public final class SitesViewModel {
 
 // MARK: - Supporting Types
 
-public extension SitesViewModel {
+public extension LocationsViewModel {
 
     enum State: Equatable, Hashable, Sendable {
 
