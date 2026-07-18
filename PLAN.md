@@ -46,16 +46,22 @@ CoreModel `@Entity` value types and shared primitives:
 
 ### FuelingAPI — REST client
 
-Hand-written `URLSession` client. **The base URL is injected** via
-`ServerURL`; nothing is hardcoded.
+Transport-agnostic client built on
+[swift-http-types](https://github.com/apple/swift-http-types).
+**The base URL is injected** via `ServerURL`; nothing is hardcoded.
 
+- `HTTPClient` — protocol with a single `data(for: HTTPRequest)` primitive;
+  the whole API is written against it, decoupled from `URLSession`.
+- API endpoints as `HTTPClient` protocol extensions —
+  `locations(sites:server:device:)` and `fuelPrices(for:server:device:)`
+  (GET `/v1/locations`, GET `/v1/fuelprice`, `Device-ID` header, repeated
+  `siteIds` query items).
+- `URLSession: HTTPClient` — conformance via `HTTPTypesFoundation`;
+  `URLSession` is just one possible transport.
 - `ServerURL` — validated wrapper around the injectable base URL.
 - `APIResponse<T>` — generic `{status, message, data}` envelope.
 - `Location` DTO — snake_case wire representation of a site.
 - `FuelPrice` DTO — price, product description, fuel code, load date.
-- `FuelingAPIClient` protocol + `URLSessionFuelingAPIClient` —
-  `locations(sites:)` and `fuelPrices(for:)` (GET `/v1/locations`,
-  GET `/v1/fuelprice`, `Device-ID` header, repeated `siteIds` query items).
 - `ModelData` mapping — converts DTOs into the CoreModel entity graph
   (site + fuel options + fuel products).
 
@@ -63,8 +69,10 @@ Hand-written `URLSession` client. **The base URL is injected** via
 
 - `SiteService` — transport protocol returning entity IDs plus the
   `ModelData` graph to persist (keeps the store transport-agnostic).
-- `APISiteService` — adapts any `FuelingAPIClient` to `SiteService`.
-- `MockSiteService` — in-process sample data for previews/playgrounds.
+- `APISiteService<Client: HTTPClient>` — adapts any `HTTPClient` transport
+  to `SiteService`.
+- `MockHTTPClient` — in-process transport serving sample data as JSON for
+  previews/playgrounds/tests.
 - `Store` — `@MainActor @Observable` composition root: owns `ModelStorage`,
   a synchronous `ViewContext` for the UI, the `SiteService`, an optional
   user location, and a `changeCount` revision for fetch invalidation.
@@ -91,9 +99,9 @@ Hand-written `URLSession` client. **The base URL is injected** via
 ### Fueling.swiftpm — app playground
 
 Swift Playground app (`iOSApplication` product) depending on the package via
-a relative path. Uses the in-memory store with `MockSiteService` so it runs
+a relative path. Uses the in-memory store with `MockHTTPClient` so it runs
 without network access; a real deployment injects `ServerURL` +
-`URLSessionFuelingAPIClient` instead.
+`URLSession` (or any other `HTTPClient`) instead.
 
 ### Tests
 
@@ -104,5 +112,6 @@ sample JSON, query predicate construction, and mock-service store flows.
 
 - One commit per file.
 - Platforms: iOS 17+, macOS 14+ (SwiftUI MapKit APIs).
-- Dependency: `CoreModel` ≥ 2.8.0 (`CoreModel` + `CoreDataModel` products).
+- Dependencies: `CoreModel` ≥ 2.8.0 (`CoreModel` + `CoreDataModel` products),
+  `swift-http-types` ≥ 1.4.0 (`HTTPTypes` + `HTTPTypesFoundation` products).
 - No generated Xcode project; build with SwiftPM / Swift Playgrounds.
