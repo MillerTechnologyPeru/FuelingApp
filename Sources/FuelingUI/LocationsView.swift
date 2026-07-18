@@ -1,5 +1,5 @@
 //
-//  SitesView.swift
+//  LocationsView.swift
 //  FuelingUI
 //
 
@@ -9,16 +9,16 @@ import SwiftUI
 import CoreFueling
 import FuelingModel
 
-/// Container switching between the site list and map.
-public struct SitesView: View {
+/// Container switching between the location list and map.
+public struct LocationsView: View {
 
-    internal var selection: (Site.ID) -> ()
+    internal var selection: (Location.ID) -> ()
 
     @State
     private var display: Display = .list
 
     public init(
-        selection: @escaping (Site.ID) -> ()
+        selection: @escaping (Location.ID) -> ()
     ) {
         self.selection = selection
     }
@@ -27,9 +27,9 @@ public struct SitesView: View {
         Group {
             switch display {
             case .list:
-                SiteListView(selection: selection)
+                LocationListView(selection: selection)
             case .map:
-                SiteMapView(selection: selection)
+                LocationMapView(selection: selection)
             }
         }
         .toolbar {
@@ -48,7 +48,7 @@ public struct SitesView: View {
 
 // MARK: - Supporting Types
 
-internal extension SitesView {
+internal extension LocationsView {
 
     enum Display: String, CaseIterable, Identifiable {
 
@@ -84,15 +84,15 @@ internal extension SitesView {
 #if DEBUG
 #Preview {
     let store = try! Store(
-        siteService: .mock,
+        locationService: .mock,
         isStoredInMemoryOnly: true
     )
     store.userLocation = LocationCoordinate(latitude: 41.0322, longitude: -81.9078)
     return NavigationStack {
-        SitesView(selection: { _ in })
-            .navigationTitle(Text("Sites"))
-            .navigationDestination(for: Site.ID.self) {
-                SiteDetailView(site: $0)
+        LocationsView(selection: { _ in })
+            .navigationTitle(Text("Locations"))
+            .navigationDestination(for: Location.ID.self) {
+                LocationDetailView(location: $0)
             }
     }
     .environment(store)
