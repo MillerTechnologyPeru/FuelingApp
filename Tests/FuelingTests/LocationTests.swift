@@ -1,5 +1,5 @@
 //
-//  SiteTests.swift
+//  LocationTests.swift
 //  FuelingTests
 //
 
@@ -9,30 +9,30 @@ import CoreModel
 @testable import CoreFueling
 
 @Suite
-struct SiteTests {
+struct LocationTests {
 
     @Test
     func schema() {
         let model = Model.fueling
         #expect(model.entities.count == 3)
         let entityNames = Set(model.entities.map { $0.id.rawValue })
-        #expect(entityNames == ["Site", "FuelProduct", "FuelOption"])
+        #expect(entityNames == ["Location", "FuelProduct", "FuelOption"])
     }
 
     @Test
     func identifier() {
-        let id: Site.ID = 15
+        let id: Location.ID = 15
         #expect(id.description == "15")
-        let prefixed = Site.ID.Prefixed(id: id)
+        let prefixed = Location.ID.Prefixed(id: id)
         #expect(prefixed.rawValue == "0015")
-        #expect(Site.ID.Prefixed(rawValue: "0015") == prefixed)
-        #expect(Site.ID(prefixed) == id)
-        #expect(Site.ID.Prefixed(rawValue: "abc") == nil)
+        #expect(Location.ID.Prefixed(rawValue: "0015") == prefixed)
+        #expect(Location.ID(prefixed) == id)
+        #expect(Location.ID.Prefixed(rawValue: "abc") == nil)
     }
 
     @Test
     func encode() throws {
-        let site = Site(
+        let location = Location(
             id: 15,
             fuelOptions: [.diesel, .defIslandFueling],
             name: "Seville Travel Center",
@@ -48,11 +48,11 @@ struct SiteTests {
             truckParkingSpaces: 237,
             showers: 10
         )
-        let data = site.encode()
-        #expect(data.entity == Site.entityName)
-        #expect(data.id == ObjectID(site.id))
-        let decoded = try Site(from: data)
-        #expect(decoded == site)
+        let data = location.encode()
+        #expect(data.entity == Location.entityName)
+        #expect(data.id == ObjectID(location.id))
+        let decoded = try Location(from: data)
+        #expect(decoded == location)
     }
 
     @Test
@@ -75,13 +75,13 @@ struct SiteTests {
 
     @Test
     func query() {
-        let query: Site.Query = .search("Seville")
+        let query: Location.Query = .search("Seville")
         // predicate should compile to a compound OR
         if case .compound = query.predicate {
         } else {
             Issue.record("Expected compound predicate")
         }
-        #expect(Site.Query.search("" as String?) == nil)
-        #expect(Site.Query.search(String?.none) == nil)
+        #expect(Location.Query.search("" as String?) == nil)
+        #expect(Location.Query.search(String?.none) == nil)
     }
 }
