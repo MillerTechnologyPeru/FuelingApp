@@ -3,6 +3,8 @@ import PackageDescription
 import class Foundation.ProcessInfo
 
 let darwin: [Platform] = [.macOS, .iOS, .tvOS, .watchOS, .visionOS, .macCatalyst]
+let otherPlatforms: [Platform] = [.linux, .windows, .openbsd, .wasi]
+let nonAndroidPlatforms: [Platform] = darwin + otherPlatforms
 
 // The Android jextract/JNI build (see Android/fueling-jni/build.gradle.kts) cross-compiles
 // this package with this flag set, so every library in the graph — including this package's
@@ -93,14 +95,18 @@ let package = Package(
             name: "FuelingModel",
             dependencies: [
                 "CoreFueling",
-                "FuelingAPI",
+                .target(
+                    name: "FuelingAPI",
+                    condition: .when(platforms: nonAndroidPlatforms)
+                ),
                 .product(
                     name: "CoreModel",
                     package: "CoreModel"
                 ),
                 .product(
                     name: "HTTPTypes",
-                    package: "swift-http-types"
+                    package: "swift-http-types",
+                    condition: .when(platforms: nonAndroidPlatforms)
                 ),
                 .product(
                     name: "CoreDataModel",
