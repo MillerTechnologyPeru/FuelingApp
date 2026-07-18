@@ -10,14 +10,14 @@ import Foundation
 #endif
 import CoreModel
 
-/// A priced fuel product sold at a site.
+/// A priced fuel product sold at a location.
 @Entity
 public struct FuelProduct: Codable, Equatable, Hashable, Identifiable, Sendable, CachedEntity {
 
     public let id: ID
 
-    @Relationship(destination: Site.self, inverse: .fuelProducts)
-    public let site: Site.ID
+    @Relationship(destination: Location.self, inverse: .fuelProducts)
+    public let location: Location.ID
 
     @Attribute
     public let updated: Date
@@ -33,14 +33,14 @@ public struct FuelProduct: Codable, Equatable, Hashable, Identifiable, Sendable,
 
     public init(
         id: FuelProduct.ID,
-        site: Site.ID,
+        location: Location.ID,
         updated: Date,
         price: Double,
         descriptionText: String,
         lastCached: Date = Date()
     ) {
         self.id = id
-        self.site = site
+        self.location = location
         self.updated = updated
         self.price = price
         self.descriptionText = descriptionText
@@ -49,7 +49,7 @@ public struct FuelProduct: Codable, Equatable, Hashable, Identifiable, Sendable,
 
     public enum CodingKeys: CodingKey {
         case id
-        case site
+        case location
         case updated
         case price
         case descriptionText
@@ -87,11 +87,11 @@ extension FuelProduct.ID: ObjectIDConvertible {
 
 public extension FuelProduct.ID {
 
-    /// Identifier for a fuel price entry, namespaced by site.
+    /// Identifier for a fuel price entry, namespaced by location.
     static func fuelPrice(
         _ code: String,
-        site: Site.ID
+        location: Location.ID
     ) -> Self {
-        .init(rawValue: site.description + "/fuelprice/" + code)
+        .init(rawValue: location.description + "/fuelprice/" + code)
     }
 }
