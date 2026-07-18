@@ -104,6 +104,9 @@ let package = Package(
                     name: "CoreModel",
                     package: "CoreModel"
                 )
+            ],
+            resources: [
+                .copy("TestFiles")
             ]
         )
     ]
