@@ -1,11 +1,11 @@
 //
-//  SiteID.swift
+//  LocationID.swift
 //  CoreFueling
 //
 
-public extension Site {
+public extension Location {
 
-    /// Site Identifier
+    /// Location Identifier
     struct ID: RawRepresentable, Codable, Equatable, Hashable, Sendable {
 
         public let rawValue: UInt
@@ -18,7 +18,7 @@ public extension Site {
 
 // MARK: - ExpressibleByIntegerLiteral
 
-extension Site.ID: ExpressibleByIntegerLiteral {
+extension Location.ID: ExpressibleByIntegerLiteral {
 
     public init(integerLiteral value: UInt) {
         self.init(rawValue: value)
@@ -27,7 +27,7 @@ extension Site.ID: ExpressibleByIntegerLiteral {
 
 // MARK: - CustomStringConvertible
 
-extension Site.ID: CustomStringConvertible, CustomDebugStringConvertible {
+extension Location.ID: CustomStringConvertible, CustomDebugStringConvertible {
 
     public var description: String {
         rawValue.description
@@ -40,24 +40,24 @@ extension Site.ID: CustomStringConvertible, CustomDebugStringConvertible {
 
 // MARK: - Supporting Types
 
-public extension Site.ID {
+public extension Location.ID {
 
-    /// Site identifier in its zero-padded 4-digit wire format.
+    /// Location identifier in its zero-padded 4-digit wire format.
     struct Prefixed: Codable, Equatable, Hashable, Sendable {
 
-        internal let value: Site.ID.RawValue
+        internal let value: Location.ID.RawValue
 
-        internal init(_ value: Site.ID.RawValue) {
+        internal init(_ value: Location.ID.RawValue) {
             self.value = value
         }
 
-        public init(id: Site.ID) {
+        public init(id: Location.ID) {
             self.value = id.rawValue
         }
     }
 }
 
-public extension Site.ID {
+public extension Location.ID {
 
     init(_ prefixed: Prefixed) {
         self.init(rawValue: prefixed.value)
@@ -66,7 +66,7 @@ public extension Site.ID {
 
 // MARK: - RawRepresentable
 
-extension Site.ID.Prefixed: RawRepresentable {
+extension Location.ID.Prefixed: RawRepresentable {
 
     public init?(rawValue: String) {
         guard let id = UInt(rawValue) else { return nil }
@@ -85,7 +85,7 @@ extension Site.ID.Prefixed: RawRepresentable {
 
 // MARK: - ExpressibleByIntegerLiteral
 
-extension Site.ID.Prefixed: ExpressibleByIntegerLiteral {
+extension Location.ID.Prefixed: ExpressibleByIntegerLiteral {
 
     public init(integerLiteral value: UInt) {
         self.init(value)
@@ -94,7 +94,7 @@ extension Site.ID.Prefixed: ExpressibleByIntegerLiteral {
 
 // MARK: - CustomStringConvertible
 
-extension Site.ID.Prefixed: CustomStringConvertible, CustomDebugStringConvertible {
+extension Location.ID.Prefixed: CustomStringConvertible, CustomDebugStringConvertible {
 
     public var description: String {
         rawValue.description
