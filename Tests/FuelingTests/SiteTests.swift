@@ -48,7 +48,7 @@ struct SiteTests {
             truckParkingSpaces: 237,
             showers: 10
         )
-        let data = try site.encode()
+        let data = site.encode()
         #expect(data.entity == Site.entityName)
         #expect(data.id == ObjectID(site.id))
         let decoded = try Site(from: data)
@@ -75,14 +75,13 @@ struct SiteTests {
 
     @Test
     func query() {
-        let query = Site.Query.search("Seville")
-        #expect(query != nil)
-        #expect(Site.Query.search("") == nil)
-        #expect(Site.Query.search(nil) == nil)
+        let query: Site.Query = .search("Seville")
         // predicate should compile to a compound OR
-        if case .compound = query!.predicate {
+        if case .compound = query.predicate {
         } else {
             Issue.record("Expected compound predicate")
         }
+        #expect(Site.Query.search("" as String?) == nil)
+        #expect(Site.Query.search(String?.none) == nil)
     }
 }
