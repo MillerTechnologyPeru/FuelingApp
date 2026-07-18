@@ -12,7 +12,6 @@ import Foundation
 #endif
 import CoreModel
 import CoreFueling
-import FuelingAPI
 import FuelingModel
 #if os(Android)
 import AndroidLooper
@@ -110,10 +109,69 @@ public final class FuelingSession {
 
 extension FuelingSession {
 
-    /// The same bundled sample locations used by previews and tests
-    /// (``FuelingModel/MockHTTPClient``), converted to the entity graph so the
-    /// Locations screen has data without a real network transport.
+    /// A few sample locations, built directly from the `CoreFueling` domain
+    /// types (not the network DTOs — `FuelingAPI`/`HTTPTypesFoundation`'s
+    /// `FoundationNetworking` dependency is excluded from the Android build
+    /// entirely, see the package manifest), so the Locations screen has data
+    /// without a real network transport.
     static func sampleLocationData() -> [ModelData] {
-        MockHTTPClient.locations.flatMap { ModelData.location($0) }
+        let fuelOptions: [FuelOption] = [
+            FuelOption(id: .diesel, name: "Diesel"),
+            FuelOption(id: .autoDiesel, name: "Auto Diesel"),
+            FuelOption(id: .defIslandFueling, name: "DEF Island Fueling"),
+            FuelOption(id: .unleadedGasoline, name: "Unleaded Gasoline"),
+            FuelOption(id: .electricChargingStations, name: "Electric Charging Stations")
+        ]
+        let locations: [CoreFueling.Location] = [
+            CoreFueling.Location(
+                id: 15,
+                fuelOptions: [.diesel, .autoDiesel, .defIslandFueling, .unleadedGasoline],
+                name: "Seville Travel Center",
+                address: "8834 Lake Road",
+                city: "Seville",
+                state: "Ohio",
+                zipCode: "44273",
+                phone: "330-555-2053",
+                directions: "I-71 & I-76 at Rt. 224, Exit 209",
+                latitude: 41.0322,
+                longitude: -81.9078,
+                fuelLanes: 9,
+                truckParkingSpaces: 237,
+                showers: 10
+            ),
+            CoreFueling.Location(
+                id: 23,
+                fuelOptions: [.diesel, .defIslandFueling, .unleadedGasoline],
+                name: "Columbus East Fuel Stop",
+                address: "6161 Interstate Parkway",
+                city: "Columbus",
+                state: "Ohio",
+                zipCode: "43217",
+                phone: "614-555-0148",
+                directions: "I-270 at US-33, Exit 46",
+                latitude: 39.8781,
+                longitude: -82.8121,
+                fuelLanes: 7,
+                truckParkingSpaces: 150,
+                showers: 8
+            ),
+            CoreFueling.Location(
+                id: 42,
+                fuelOptions: [.diesel, .autoDiesel, .electricChargingStations],
+                name: "Toledo Junction Travel Plaza",
+                address: "3483 Libbey Road",
+                city: "Perrysburg",
+                state: "Ohio",
+                zipCode: "43551",
+                phone: "419-555-0837",
+                directions: "I-75 & I-80/90, Exit 71",
+                latitude: 41.5164,
+                longitude: -83.5992,
+                fuelLanes: 6,
+                truckParkingSpaces: 122,
+                showers: 6
+            )
+        ]
+        return locations.map { $0.encode() } + fuelOptions.map { $0.encode() }
     }
 }
