@@ -11,7 +11,7 @@ and delivered as a Swift Playground app (no Xcode project).
 | Module | Description |
 |---|---|
 | `CoreFueling` | Domain entities (`Site`, `FuelProduct`, `FuelOption`) declared with the CoreModel `@Entity` macro, plus search queries and geo primitives. |
-| `FuelingAPI` | Hand-written `URLSession` REST client with an **injectable base URL** (`ServerURL`) — no hardcoded hostnames. |
+| `FuelingAPI` | REST API implemented as extensions of an `HTTPClient` protocol ([swift-http-types](https://github.com/apple/swift-http-types)) with an **injectable base URL** (`ServerURL`) — no hardcoded hostnames, `URLSession` is just one conformer. |
 | `FuelingModel` | `Store` (persistence + network composition root) and `@Observable` view models for the site list and site detail. |
 | `FuelingUI` | SwiftUI views: `SitesView` (list/map toggle), `SiteListView`, `SiteMapView`, `SiteDetailView`. |
 
@@ -20,7 +20,7 @@ See [PLAN.md](PLAN.md) for the architecture.
 ## Running the app
 
 Open `Fueling.swiftpm` in Xcode or Swift Playgrounds and run. The demo uses
-bundled sample data (`MockFuelingAPIClient`) with an in-memory store, so it
+bundled sample data (`MockHTTPClient`) with an in-memory store, so it
 works offline.
 
 To run against a real server, inject the base URL:
