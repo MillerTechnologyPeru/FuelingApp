@@ -1,5 +1,5 @@
 //
-//  SiteMapView.swift
+//  LocationMapView.swift
 //  FuelingUI
 //
 
@@ -14,38 +14,38 @@ import _MapKit_SwiftUI
 import CoreFueling
 import FuelingModel
 
-/// Map of fueling sites.
-public struct SiteMapView: View {
+/// Map of fueling locations.
+public struct LocationMapView: View {
 
     @Environment(Store.self)
     private var store: Store
 
-    internal var selection: (Site.ID) -> ()
+    internal var selection: (Location.ID) -> ()
 
     public init(
-        selection: @escaping (Site.ID) -> ()
+        selection: @escaping (Location.ID) -> ()
     ) {
         self.selection = selection
     }
 
     public var body: some View {
-        LazyViewModel(viewModel: SitesViewModel(store: store)) {
+        LazyViewModel(viewModel: LocationsViewModel(store: store)) {
             ViewModelView(viewModel: $0, selection: selection)
         }
     }
 }
 
-internal extension SiteMapView {
+internal extension LocationMapView {
 
     struct ViewModelView: View {
 
-        var viewModel: SitesViewModel
+        var viewModel: LocationsViewModel
 
-        let selection: (Site.ID) -> ()
+        let selection: (Location.ID) -> ()
 
         var body: some View {
             MapView(
-                sites: viewModel.sites,
+                locations: viewModel.locations,
                 userLocation: viewModel.userLocation,
                 distance: viewModel.distance(to:),
                 selection: selection
@@ -62,17 +62,17 @@ internal extension SiteMapView {
     }
 }
 
-internal extension SiteMapView {
+internal extension LocationMapView {
 
     struct MapView: View {
 
-        let sites: [Site]
+        let locations: [Location]
 
         let userLocation: LocationCoordinate?
 
-        let distance: (Site) -> String?
+        let distance: (Location) -> String?
 
-        let selection: (Site.ID) -> ()
+        let selection: (Location.ID) -> ()
 
         @State
         private var position: MapCameraPosition = .automatic
@@ -82,17 +82,17 @@ internal extension SiteMapView {
 
         var body: some View {
             Map(position: $position) {
-                ForEach(sites) { site in
+                ForEach(locations) { location in
                     Annotation(
-                        site.name,
+                        location.name,
                         coordinate: CLLocationCoordinate2D(
-                            latitude: site.latitude,
-                            longitude: site.longitude
+                            latitude: location.latitude,
+                            longitude: location.longitude
                         )
                     ) {
                         AnnotationView(
-                            distance: distance(site),
-                            action: { selection(site.id) }
+                            distance: distance(location),
+                            action: { selection(location.id) }
                         )
                     }
                 }
@@ -131,7 +131,7 @@ internal extension SiteMapView {
     }
 }
 
-internal extension SiteMapView {
+internal extension LocationMapView {
 
     struct AnnotationView: View {
 
@@ -164,13 +164,13 @@ internal extension SiteMapView {
 #if DEBUG
 #Preview {
     let store = try! Store(
-        siteService: .mock,
+        locationService: .mock,
         isStoredInMemoryOnly: true
     )
     store.userLocation = LocationCoordinate(latitude: 41.0322, longitude: -81.9078)
     return NavigationStack {
-        SiteMapView(selection: { _ in })
-            .navigationTitle(Text("Sites"))
+        LocationMapView(selection: { _ in })
+            .navigationTitle(Text("Locations"))
     }
     .environment(store)
 }
