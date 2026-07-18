@@ -1,5 +1,5 @@
 //
-//  SiteDetailViewModel.swift
+//  LocationDetailViewModel.swift
 //  FuelingModel
 //
 
@@ -12,15 +12,15 @@ import Observation
 import CoreModel
 import CoreFueling
 
-/// View model for a single site's detail screen, including fuel prices.
+/// View model for a single location's detail screen, including fuel prices.
 @MainActor
 @Observable
-public final class SiteDetailViewModel: Identifiable {
+public final class LocationDetailViewModel: Identifiable {
 
     // MARK: - Initialization
 
     public init(
-        id: Site.ID,
+        id: Location.ID,
         store: Store
     ) {
         self.id = id
@@ -34,7 +34,7 @@ public final class SiteDetailViewModel: Identifiable {
 
     // MARK: - Properties
 
-    public let id: Site.ID
+    public let id: Location.ID
 
     internal let store: Store
 
@@ -55,11 +55,11 @@ public final class SiteDetailViewModel: Identifiable {
         return false
     }
 
-    public var site: SiteData? {
+    public var location: LocationData? {
         switch state {
-        case .loading(let site): return site
-        case .loaded(let site): return site
-        case .error(let site, _): return site
+        case .loading(let location): return location
+        case .loaded(let location): return location
+        case .error(let location, _): return location
         }
     }
 
@@ -68,12 +68,12 @@ public final class SiteDetailViewModel: Identifiable {
     /// Formatted distance from the user location.
     public var distance: String? {
         guard let userLocation = store.userLocation,
-            let coordinates = site?.coordinates
+            let coordinates = location?.coordinates
         else {
             return nil
         }
         let meters = userLocation.distance(to: coordinates)
-        return SitesViewModel.distance(for: meters, usesMetric: usesMetric)
+        return LocationsViewModel.distance(for: meters, usesMetric: usesMetric)
     }
 
     // MARK: - Methods
@@ -92,7 +92,7 @@ public final class SiteDetailViewModel: Identifiable {
         task = nil
     }
 
-    /// Reload the site from cache and refresh it (with fuel prices) from the network.
+    /// Reload the location from cache and refresh it (with fuel prices) from the network.
     public func reload() {
         guard task == nil else {
             return
@@ -105,14 +105,14 @@ public final class SiteDetailViewModel: Identifiable {
             defer {
                 self.task = nil
             }
-            guard store.siteService != nil else {
+            guard store.locationService != nil else {
                 // offline: present cached data only
                 self.loadData()
                 return
             }
-            // fetch site
+            // fetch location
             do {
-                _ = try await store.site(for: id)
+                _ = try await store.location(for: id)
                 self.loadData(isLoading: true)
             } catch is CancellationError {
                 return
@@ -126,60 +126,60 @@ public final class SiteDetailViewModel: Identifiable {
             } catch is CancellationError {
                 return
             } catch {
-                // keep showing the site without prices
+                // keep showing the location without prices
             }
             self.loadData()
         }
     }
 
     private func setError(_ error: any Swift.Error) {
-        state = .error(site, .init(error))
+        state = .error(location, .init(error))
     }
 
     private func loadData(isLoading: Bool = false) {
         do {
-            guard let site = try store.viewContext.fetch(Site.self, for: id) else {
+            guard let location = try store.viewContext.fetch(Location.self, for: id) else {
                 // not cached yet
                 state = isLoading ? .loading(nil) : .error(nil, .invalidResponse)
                 return
             }
             // load fuel products
-            let fuelProducts = try site.fuelProducts
+            let fuelProducts = try location.fuelProducts
                 .compactMap { id in
                     try store.viewContext.fetch(CoreFueling.FuelProduct.self, for: id)
                 }
                 .sorted { $0.descriptionText < $1.descriptionText }
                 .map { FuelProduct($0) }
             // load fuel options
-            let fuelOptions = try site.fuelOptions
+            let fuelOptions = try location.fuelOptions
                 .compactMap { id in
                     try store.viewContext.fetch(FuelOption.self, for: id)
                 }
                 .map { $0.name }
                 .sorted()
             // build address and directions
-            var address = site.postalAddress
-            if let directions = site.directions, directions.isEmpty == false {
+            var address = location.postalAddress
+            if let directions = location.directions, directions.isEmpty == false {
                 address += "\n" + directions
             }
             let directions = [
-                ("Apple Maps", "http://maps.apple.com/?ll=\(site.latitude),\(site.longitude)"),
-                ("Google Maps", "https://www.google.com/maps/place/\(site.latitude),\(site.longitude)")
+                ("Apple Maps", "http://maps.apple.com/?ll=\(location.latitude),\(location.longitude)"),
+                ("Google Maps", "https://www.google.com/maps/place/\(location.latitude),\(location.longitude)")
             ].compactMap { (title, string) in
                 URL(string: string).flatMap { Directions(title: title, url: $0) }
             }
             // additional details
             var details = [Detail]()
-            if site.phone.isEmpty == false {
-                details.append(Detail(title: "Phone", value: site.phone))
+            if location.phone.isEmpty == false {
+                details.append(Detail(title: "Phone", value: location.phone))
             }
             details += [
-                Detail(title: "Latitude", value: site.latitude.description),
-                Detail(title: "Longitude", value: site.longitude.description),
-                Detail(title: "Site ID", value: Site.ID.Prefixed(id: site.id).rawValue)
+                Detail(title: "Latitude", value: location.latitude.description),
+                Detail(title: "Longitude", value: location.longitude.description),
+                Detail(title: "Location ID", value: Location.ID.Prefixed(id: location.id).rawValue)
             ]
-            let data = SiteData(
-                entity: site,
+            let data = LocationData(
+                entity: location,
                 address: address,
                 directions: directions,
                 details: details,
@@ -195,18 +195,18 @@ public final class SiteDetailViewModel: Identifiable {
 
 // MARK: - Supporting Types
 
-public extension SiteDetailViewModel {
+public extension LocationDetailViewModel {
 
     enum State: Equatable, Hashable, Sendable {
 
-        case loading(SiteData?)
-        case loaded(SiteData)
-        case error(SiteData?, FuelingError)
+        case loading(LocationData?)
+        case loaded(LocationData)
+        case error(LocationData?, FuelingError)
     }
 
-    struct SiteData: Equatable, Hashable, Sendable, Identifiable {
+    struct LocationData: Equatable, Hashable, Sendable, Identifiable {
 
-        public let entity: Site
+        public let entity: Location
 
         public let address: String
 
@@ -218,7 +218,7 @@ public extension SiteDetailViewModel {
 
         public let fuelOptions: [String]
 
-        public var id: Site.ID {
+        public var id: Location.ID {
             entity.id
         }
 
