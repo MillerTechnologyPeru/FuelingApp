@@ -1,7 +1,7 @@
 # FuelingApp
 
-Modular Swift package for browsing fueling sites — a searchable list and map
-of locations, and a site detail screen with current fuel prices.
+Modular Swift package for browsing fueling locations — a searchable list and
+map of locations, and a location detail screen with current fuel prices.
 
 Built on [CoreModel](https://github.com/PureSwift/CoreModel) for persistence
 and delivered as a Swift Playground app (no Xcode project).
@@ -10,10 +10,10 @@ and delivered as a Swift Playground app (no Xcode project).
 
 | Module | Description |
 |---|---|
-| `CoreFueling` | Domain entities (`Site`, `FuelProduct`, `FuelOption`) declared with the CoreModel `@Entity` macro, plus search queries and geo primitives. |
+| `CoreFueling` | Domain entities (`Location`, `FuelProduct`, `FuelOption`) declared with the CoreModel `@Entity` macro, plus search queries and geo primitives. |
 | `FuelingAPI` | REST API implemented as extensions of an `HTTPClient` protocol ([swift-http-types](https://github.com/apple/swift-http-types)) with an **injectable base URL** (`ServerURL`) — no hardcoded hostnames, `URLSession` is just one conformer. |
-| `FuelingModel` | `Store` (persistence + network composition root) and `@Observable` view models for the site list and site detail. |
-| `FuelingUI` | SwiftUI views: `SitesView` (list/map toggle), `SiteListView`, `SiteMapView`, `SiteDetailView`. |
+| `FuelingModel` | `Store` (persistence + network composition root) and `@Observable` view models for the location list and location detail. |
+| `FuelingUI` | SwiftUI views: `LocationsView` (list/map toggle), `LocationListView`, `LocationMapView`, `LocationDetailView`. |
 
 ## Running the app
 
@@ -24,8 +24,8 @@ works offline.
 To run against a real server, inject the base URL:
 
 ```swift
-let service = APISiteService(server: ServerURL(rawValue: "https://api.example.com")!)
-let store = try Store(siteService: service)
+let service = APILocationService(server: ServerURL(rawValue: "https://api.example.com")!)
+let store = try Store(locationService: service)
 ```
 
 ## Usage
@@ -35,14 +35,14 @@ import SwiftUI
 import FuelingModel
 import FuelingUI
 
-// list / map of sites
-SitesView { siteID in
+// list / map of locations
+LocationsView { locationID in
     // handle selection
 }
 .environment(store)
 
-// site detail with fuel prices
-SiteDetailView(site: siteID)
+// location detail with fuel prices
+LocationDetailView(location: locationID)
     .environment(store)
 ```
 
