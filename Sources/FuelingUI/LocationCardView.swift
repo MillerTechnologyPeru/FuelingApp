@@ -1,5 +1,5 @@
 //
-//  SiteCardView.swift
+//  LocationCardView.swift
 //  FuelingUI
 //
 
@@ -7,8 +7,8 @@
 import Foundation
 import SwiftUI
 
-/// Card view for a site row in the list.
-public struct SiteCardView: View {
+/// Card view for a location row in the list.
+public struct LocationCardView: View {
 
     let name: String
 
@@ -60,17 +60,17 @@ public struct SiteCardView: View {
 #Preview {
     ScrollView {
         VStack {
-            SiteCardView(
+            LocationCardView(
                 name: "Seville Travel Center",
                 distance: "Here",
                 address: "8834 Lake Road\nSeville, Ohio 44273"
             )
-            SiteCardView(
+            LocationCardView(
                 name: "Columbus East Fuel Stop",
                 distance: "94 mi",
                 address: "6161 Interstate Parkway\nColumbus, Ohio 43217"
             )
-            SiteCardView(
+            LocationCardView(
                 name: "Steel City Truck Plaza",
                 address: "1150 Smithfield Street\nPittsburgh, Pennsylvania 15222"
             )
