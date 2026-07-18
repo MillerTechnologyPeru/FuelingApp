@@ -1,5 +1,5 @@
 //
-//  Site.swift
+//  Location.swift
 //  CoreFueling
 //
 
@@ -10,16 +10,16 @@ import Foundation
 #endif
 import CoreModel
 
-/// A fueling site (location).
+/// A fueling location.
 @Entity
-public struct Site: Equatable, Hashable, Codable, Identifiable, Sendable, CachedEntity {
+public struct Location: Equatable, Hashable, Codable, Identifiable, Sendable, CachedEntity {
 
     public let id: ID
 
-    @Relationship(destination: FuelProduct.self, inverse: .site)
+    @Relationship(destination: FuelProduct.self, inverse: .location)
     public var fuelProducts: [FuelProduct.ID]
 
-    @Relationship(destination: FuelOption.self, inverse: .sites)
+    @Relationship(destination: FuelOption.self, inverse: .locations)
     public var fuelOptions: [FuelOption.ID]
 
     @Attribute
@@ -129,9 +129,9 @@ public struct Site: Equatable, Hashable, Codable, Identifiable, Sendable, Cached
     }
 }
 
-public extension Site {
+public extension Location {
 
-    /// Geographic coordinates of the site.
+    /// Geographic coordinates of the location.
     var coordinates: LocationCoordinate {
         LocationCoordinate(latitude: latitude, longitude: longitude)
     }
@@ -144,7 +144,7 @@ public extension Site {
 
 // MARK: - CoreModel
 
-extension Site.ID: ObjectIDConvertible {
+extension Location.ID: ObjectIDConvertible {
 
     public init?(objectID: CoreModel.ObjectID) {
         guard let rawValue = UInt(objectID.rawValue) else {
