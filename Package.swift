@@ -38,6 +38,14 @@ let package = Package(
         .package(
             url: "https://github.com/apple/swift-http-types",
             from: "1.4.0"
+        ),
+        .package(
+            url: "https://github.com/PureSwift/CoreModel-SQLite",
+            branch: "master"
+        ),
+        .package(
+            url: "https://github.com/PureSwift/SQLite",
+            branch: "master"
         )
     ],
     targets: [
@@ -85,6 +93,14 @@ let package = Package(
                     name: "CoreDataModel",
                     package: "CoreModel",
                     condition: .when(platforms: darwin)
+                ),
+                .product(
+                    name: "CoreModelSQLite",
+                    package: "CoreModel-SQLite"
+                ),
+                .product(
+                    name: "SQLite",
+                    package: "SQLite"
                 )
             ]
         ),
