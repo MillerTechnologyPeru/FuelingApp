@@ -1,5 +1,5 @@
 //
-//  SiteQuery.swift
+//  LocationQuery.swift
 //  CoreFueling
 //
 
@@ -12,9 +12,9 @@ import CoreModel
 
 // MARK: - Filtering
 
-public extension Site {
+public extension Location {
 
-    /// Composable filter for fetching sites.
+    /// Composable filter for fetching locations.
     enum Query: Equatable, Hashable, Sendable {
 
         case name(String, StringOperator = .contains)
@@ -31,7 +31,7 @@ public extension Site {
     }
 }
 
-public extension Site.Query {
+public extension Location.Query {
 
     typealias StringOperator = FetchRequest.Predicate.StringOperator
 }
@@ -45,10 +45,10 @@ public extension FetchRequest.Predicate {
     }
 }
 
-public extension Site.Query {
+public extension Location.Query {
 
-    /// Match sites whose name, city, directions, address, zip code or state contain the text.
-    static func search(_ text: String) -> Site.Query {
+    /// Match locations whose name, city, directions, address, zip code or state contain the text.
+    static func search(_ text: String) -> Location.Query {
         .or([
             .name(text, .contains),
             .city(text, .contains),
@@ -59,12 +59,12 @@ public extension Site.Query {
         ])
     }
 
-    static func fuelOptions(_ fuelOptions: Set<FuelOption.ID>) -> Site.Query {
+    static func fuelOptions(_ fuelOptions: Set<FuelOption.ID>) -> Location.Query {
         .and(fuelOptions.map { .fuelOption($0) })
     }
 
-    /// Build a query from optional search text, or `nil` to fetch all sites.
-    static func search(_ text: String? = nil) -> Site.Query? {
+    /// Build a query from optional search text, or `nil` to fetch all locations.
+    static func search(_ text: String? = nil) -> Location.Query? {
         guard let text, text.isEmpty == false else {
             return nil
         }
@@ -72,7 +72,7 @@ public extension Site.Query {
     }
 }
 
-public extension Site.Query {
+public extension Location.Query {
 
     var predicate: CoreModel.FetchRequest.Predicate {
         switch self {
@@ -87,29 +87,29 @@ public extension Site.Query {
             }
             return .compound(.or(queries.map({ $0.predicate })))
         case .name(let text, .contains):
-            return Site.CodingKeys.name.contains(text)
+            return Location.CodingKeys.name.contains(text)
         case .name(let text, .equalTo):
-            return Site.CodingKeys.name.equalTo(text)
+            return Location.CodingKeys.name.equalTo(text)
         case .directions(let text, .contains):
-            return Site.CodingKeys.directions.contains(text)
+            return Location.CodingKeys.directions.contains(text)
         case .directions(let text, .equalTo):
-            return Site.CodingKeys.directions.equalTo(text)
+            return Location.CodingKeys.directions.equalTo(text)
         case .city(let text, .contains):
-            return Site.CodingKeys.city.contains(text)
+            return Location.CodingKeys.city.contains(text)
         case .city(let text, .equalTo):
-            return Site.CodingKeys.city.equalTo(text)
+            return Location.CodingKeys.city.equalTo(text)
         case .address(let text, .contains):
-            return Site.CodingKeys.address.contains(text)
+            return Location.CodingKeys.address.contains(text)
         case .address(let text, .equalTo):
-            return Site.CodingKeys.address.equalTo(text)
+            return Location.CodingKeys.address.equalTo(text)
         case .zipCode(let zipCode):
-            return Site.CodingKeys.zipCode.contains(zipCode)
+            return Location.CodingKeys.zipCode.contains(zipCode)
         case .state(let state):
-            return Site.CodingKeys.state.equalTo(state)
+            return Location.CodingKeys.state.equalTo(state)
         case .fuelOption(let fuelOption):
-            return Site.CodingKeys.fuelOptions.compare(.any, .in, [], .relationship(.toMany([.init(fuelOption)])))
+            return Location.CodingKeys.fuelOptions.compare(.any, .in, [], .relationship(.toMany([.init(fuelOption)])))
         case .lastViewed:
-            return Site.CodingKeys.lastViewed.compare(.notEqualTo, .attribute(.null))
+            return Location.CodingKeys.lastViewed.compare(.notEqualTo, .attribute(.null))
         }
     }
 }
@@ -143,37 +143,37 @@ internal extension CodingKey {
 
 public extension ViewContext {
 
-    /// Fetch sites filtered by search text.
+    /// Fetch locations filtered by search text.
     func fetch(
-        _ type: Site.Type,
+        _ type: Location.Type,
         search text: String?
-    ) throws -> [Site] {
-        let predicate = Site.Query.search(text)?.predicate
+    ) throws -> [Location] {
+        let predicate = Location.Query.search(text)?.predicate
         return try self.fetch(type, predicate: predicate)
     }
 }
 
 public extension ModelStorage {
 
-    /// Fetch sites filtered by search text.
+    /// Fetch locations filtered by search text.
     func fetch(
-        _ type: Site.Type,
+        _ type: Location.Type,
         search text: String?
-    ) async throws -> [Site] {
-        let predicate = Site.Query.search(text)?.predicate
+    ) async throws -> [Location] {
+        let predicate = Location.Query.search(text)?.predicate
         return try await fetch(type, predicate: predicate)
     }
 
-    /// Mark a site as viewed.
+    /// Mark a location as viewed.
     func didView(
-        _ id: Site.ID,
+        _ id: Location.ID,
         date: Date = Date()
     ) async throws {
         let modelData = ModelData(
-            entity: Site.entityName,
+            entity: Location.entityName,
             id: ObjectID(id),
             attributes: [
-                PropertyKey(Site.CodingKeys.lastViewed): .date(date)
+                PropertyKey(Location.CodingKeys.lastViewed): .date(date)
             ]
         )
         try await insert(modelData)
