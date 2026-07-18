@@ -141,6 +141,14 @@ internal extension CodingKey {
 
 // MARK: - Fetching
 
+// `ViewContext` and the generic `Entity`-based `ModelStorage.fetch<T>`/`insert<T>`
+// convenience methods these build on are both unavailable under Embedded Swift
+// (see CoreModel's README) — `ViewContext` doesn't exist there, and the generic
+// helpers hit a compiler limitation with `async` default protocol-extension
+// methods dispatching through `Self`. Embedded callers build `FetchRequest`/
+// `ModelData` directly against the `ModelStorage` requirements.
+#if !hasFeature(Embedded)
+
 public extension ViewContext {
 
     /// Fetch locations filtered by search text.
@@ -179,3 +187,5 @@ public extension ModelStorage {
         try await insert(modelData)
     }
 }
+
+#endif
