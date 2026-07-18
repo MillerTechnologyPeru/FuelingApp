@@ -11,7 +11,7 @@ public extension Model {
     static var fueling: Model {
         Model(
             entities:
-                Site.self,
+                Location.self,
                 FuelProduct.self,
                 FuelOption.self
         )
