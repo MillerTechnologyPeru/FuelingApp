@@ -26,9 +26,9 @@ struct FuelingAPITests {
     @Test
     func requestURL() {
         let server = ServerURL(rawValue: "https://example.com")!
-        let url = FuelingAPI.url(for: "v1/fuelprice", sites: [15, 23], server: server)
+        let url = FuelingAPI.url(for: "v1/fuelprice", ids: [15, 23], server: server)
         #expect(url.absoluteString == "https://example.com/v1/fuelprice?siteIds=0015&siteIds=0023")
-        let allURL = FuelingAPI.url(for: "v1/locations", sites: [], server: server)
+        let allURL = FuelingAPI.url(for: "v1/locations", ids: [], server: server)
         #expect(allURL.absoluteString == "https://example.com/v1/locations")
     }
 
@@ -39,11 +39,11 @@ struct FuelingAPITests {
         let server = ServerURL.localhost()
         let locations = try await client.locations(server: server)
         #expect(locations.count == MockHTTPClient.locations.count)
-        let filtered = try await client.locations(sites: [15], server: server)
+        let filtered = try await client.locations(ids: [15], server: server)
         #expect(filtered.map { $0.id } == [15])
         let prices = try await client.fuelPrices(for: [15], server: server)
         #expect(prices.isEmpty == false)
-        #expect(prices.allSatisfy { $0.site == 15 })
+        #expect(prices.allSatisfy { $0.location == 15 })
     }
 
     @Test
@@ -62,8 +62,8 @@ struct FuelingAPITests {
         )
         let modelData = locations.flatMap { ModelData.location($0) }
         try await store.insert(modelData)
-        let sites = try await store.storage.fetch(Site.self, search: nil)
-        #expect(sites.count == 360)
+        let cachedLocations = try await store.storage.fetch(Location.self, search: nil)
+        #expect(cachedLocations.count == 360)
         let fuelOptions = try await store.storage.fetch(FuelOption.self)
         #expect(fuelOptions.count == 16)
     }
@@ -103,8 +103,8 @@ struct FuelingAPITests {
         let prices = try response.get()
         #expect(prices.count == 1)
         let price = prices[0]
-        #expect(price.site == 15)
-        #expect(price.product == .fuelPrice("DSL", site: 15))
+        #expect(price.location == 15)
+        #expect(price.product == .fuelPrice("DSL", location: 15))
         #expect(price.price == 3.899)
         #expect(price.updated() != nil)
     }
@@ -147,7 +147,7 @@ struct FuelingAPITests {
                 ]
             }
             """#.utf8)
-        let response = try JSONDecoder().decode(APIResponse<[Location]>.self, from: json)
+        let response = try JSONDecoder().decode(APIResponse<[GetLocation]>.self, from: json)
         let locations = try response.get()
         #expect(locations.count == 1)
         let location = locations[0]
@@ -170,7 +170,7 @@ struct FuelingAPITests {
 
     @Test
     func locationModelData() throws {
-        let location = Location(
+        let wireLocation = GetLocation(
             siteID: "0015",
             name: "Seville Travel Center",
             address: "8834 Lake Road",
@@ -183,20 +183,20 @@ struct FuelingAPITests {
             fuelingOptions: ["Diesel", "DEF Island Fueling"],
             dieselDispenserLanes: 9
         )
-        let graph = ModelData.location(location)
-        // 1 site + 2 fuel options
+        let graph = ModelData.location(wireLocation)
+        // 1 location + 2 fuel options
         #expect(graph.count == 3)
         // the mapping is a partial update: `fuelProducts` is deliberately left
         // untouched so refreshing a location never severs cached price links
-        var siteData = graph[0]
-        #expect(siteData.relationships[PropertyKey(Site.CodingKeys.fuelProducts)] == nil)
-        siteData.relationships[PropertyKey(Site.CodingKeys.fuelProducts)] = .toMany([])
-        siteData.attributes[PropertyKey(Site.CodingKeys.lastViewed)] = .null
-        let site = try Site(from: siteData)
-        #expect(site.id == 15)
-        #expect(site.name == "Seville Travel Center")
-        #expect(site.fuelLanes == 9)
-        #expect(Set(site.fuelOptions) == [.diesel, .defIslandFueling])
+        var locationData = graph[0]
+        #expect(locationData.relationships[PropertyKey(Location.CodingKeys.fuelProducts)] == nil)
+        locationData.relationships[PropertyKey(Location.CodingKeys.fuelProducts)] = .toMany([])
+        locationData.attributes[PropertyKey(Location.CodingKeys.lastViewed)] = .null
+        let location = try Location(from: locationData)
+        #expect(location.id == 15)
+        #expect(location.name == "Seville Travel Center")
+        #expect(location.fuelLanes == 9)
+        #expect(Set(location.fuelOptions) == [.diesel, .defIslandFueling])
     }
 
     @Test
@@ -210,8 +210,8 @@ struct FuelingAPITests {
         )
         let modelData = try #require(ModelData(fuelPrice: price))
         let product = try FuelProduct(from: modelData)
-        #expect(product.id == .fuelPrice("DSL", site: 15))
-        #expect(product.site == 15)
+        #expect(product.id == .fuelPrice("DSL", location: 15))
+        #expect(product.location == 15)
         #expect(product.price == 3.899)
         #expect(product.descriptionText == "Diesel")
     }
