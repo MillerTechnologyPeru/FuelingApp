@@ -47,6 +47,28 @@ struct FuelingAPITests {
     }
 
     @Test
+    @MainActor
+    func allLocations() async throws {
+        // decode the full production-shaped payload through the protocol-extension API
+        let json = try Self.data(for: "Locations.json")
+        let client = StaticHTTPClient(responseBody: json)
+        let locations = try await client.locations(server: .localhost())
+        #expect(locations.count == 360)
+        #expect(locations.allSatisfy { $0.id != nil })
+        // persist the entity graph and read it back
+        let store = try Store(
+            named: "FuelingAPITests-allLocations-\(UUID())",
+            isStoredInMemoryOnly: true
+        )
+        let modelData = locations.flatMap { ModelData.location($0) }
+        try await store.insert(modelData)
+        let sites = try await store.storage.fetch(Site.self, search: nil)
+        #expect(sites.count == 360)
+        let fuelOptions = try await store.storage.fetch(FuelOption.self)
+        #expect(fuelOptions.count == 16)
+    }
+
+    @Test
     func httpClientNotFound() async throws {
         let client = MockHTTPClient(delay: 0)
         let request = HTTPRequest(
@@ -134,6 +156,18 @@ struct FuelingAPITests {
         #expect(location.dieselDispenserLanes == 9)
     }
 
+    /// Load a bundled test data file.
+    static func data(for filename: String) throws -> Data {
+        let url = try #require(
+            Bundle.module.url(
+                forResource: filename,
+                withExtension: nil,
+                subdirectory: "TestFiles"
+            )
+        )
+        return try Data(contentsOf: url)
+    }
+
     @Test
     func locationModelData() throws {
         let location = Location(
@@ -180,5 +214,19 @@ struct FuelingAPITests {
         #expect(product.site == 15)
         #expect(product.price == 3.899)
         #expect(product.descriptionText == "Diesel")
+    }
+}
+
+// MARK: - Supporting Types
+
+/// Test transport serving a fixed response body for any request.
+internal struct StaticHTTPClient: HTTPClient {
+
+    var responseBody: Data
+
+    var status: HTTPResponse.Status = .ok
+
+    func data(for request: HTTPRequest) async throws(FuelingError) -> (Data, HTTPResponse) {
+        (responseBody, HTTPResponse(status: status))
     }
 }
