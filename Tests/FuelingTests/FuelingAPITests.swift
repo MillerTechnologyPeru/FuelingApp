@@ -125,7 +125,13 @@ struct FuelingAPITests {
         let graph = ModelData.location(location)
         // 1 site + 2 fuel options
         #expect(graph.count == 3)
-        let site = try Site(from: graph[0])
+        // the mapping is a partial update: `fuelProducts` is deliberately left
+        // untouched so refreshing a location never severs cached price links
+        var siteData = graph[0]
+        #expect(siteData.relationships[PropertyKey(Site.CodingKeys.fuelProducts)] == nil)
+        siteData.relationships[PropertyKey(Site.CodingKeys.fuelProducts)] = .toMany([])
+        siteData.attributes[PropertyKey(Site.CodingKeys.lastViewed)] = .null
+        let site = try Site(from: siteData)
         #expect(site.id == 15)
         #expect(site.name == "Seville Travel Center")
         #expect(site.fuelLanes == 9)
