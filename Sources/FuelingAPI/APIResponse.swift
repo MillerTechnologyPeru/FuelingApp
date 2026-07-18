@@ -11,13 +11,23 @@ import Foundation
 import CoreFueling
 
 /// Generic `{ status, message, data }` envelope returned by every endpoint.
-public struct APIResponse<T: Decodable & Sendable>: Decodable, Sendable {
+public struct APIResponse<T: Codable & Sendable>: Codable, Sendable {
 
     public let status: Status
 
     public let message: String?
 
     public let data: T?
+
+    public init(
+        status: Status = .success,
+        message: String? = nil,
+        data: T? = nil
+    ) {
+        self.status = status
+        self.message = message
+        self.data = data
+    }
 
     public enum CodingKeys: String, CodingKey {
         case status
