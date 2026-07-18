@@ -8,12 +8,13 @@ import FoundationEssentials
 #elseif canImport(Foundation)
 import Foundation
 #endif
+import HTTPTypes
 import CoreFueling
 import FuelingAPI
 
-/// In-process ``FuelingAPI/FuelingAPIClient`` serving sample data,
+/// In-process ``FuelingAPI/HTTPClient`` serving sample data as JSON,
 /// for previews, playgrounds and tests.
-public struct MockFuelingAPIClient: FuelingAPIClient {
+public struct MockHTTPClient: HTTPClient {
 
     /// Simulated network delay.
     public var delay: TimeInterval
@@ -22,36 +23,57 @@ public struct MockFuelingAPIClient: FuelingAPIClient {
         self.delay = delay
     }
 
-    public func locations(sites: [Site.ID]) async throws(FuelingError) -> [Location] {
+    public func data(for request: HTTPRequest) async throws(FuelingError) -> (Data, HTTPResponse) {
         try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-        let locations = Self.locations
-        guard sites.isEmpty == false else {
-            return locations
+        guard request.method == .get,
+            let path = request.path,
+            let components = URLComponents(string: path)
+        else {
+            throw .invalidResponse
         }
-        let requested = Set(sites.map { Site.ID.Prefixed(id: $0).rawValue })
-        return locations.filter { requested.contains($0.siteID) }
+        let sites = (components.queryItems ?? [])
+            .filter { $0.name == "siteIds" }
+            .compactMap { $0.value }
+        let body: Data
+        switch components.path {
+        case "/v1/locations":
+            body = try Self.encode(Self.locations, sites: sites, id: \.siteID)
+        case "/v1/fuelprice":
+            body = try Self.encode(Self.fuelPrices, sites: sites, id: \.siteID)
+        default:
+            return (Data(), HTTPResponse(status: .notFound))
+        }
+        return (body, HTTPResponse(status: .ok))
     }
 
-    public func fuelPrices(for sites: [Site.ID]) async throws(FuelingError) -> [FuelPrice] {
-        try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-        let prices = Self.fuelPrices
-        guard sites.isEmpty == false else {
-            return prices
+    /// Filter by requested site IDs and wrap in the response envelope.
+    internal static func encode<T: Codable & Sendable>(
+        _ values: [T],
+        sites: [String],
+        id: (T) -> String
+    ) throws(FuelingError) -> Data {
+        let filtered = sites.isEmpty ? values : values.filter { sites.contains(id($0)) }
+        let response = APIResponse(data: filtered)
+        do {
+            return try JSONEncoder().encode(response)
+        } catch {
+            throw FuelingError(error)
         }
-        let requested = Set(sites.map { Site.ID.Prefixed(id: $0).rawValue })
-        return prices.filter { requested.contains($0.siteID) }
     }
 }
 
-public extension SiteService where Self == APISiteService {
+public extension SiteService where Self == APISiteService<MockHTTPClient> {
 
     /// Sample-data service for previews and playgrounds.
-    static var mock: APISiteService {
-        APISiteService(client: MockFuelingAPIClient())
+    static var mock: APISiteService<MockHTTPClient> {
+        APISiteService(
+            client: MockHTTPClient(),
+            server: .localhost()
+        )
     }
 }
 
-public extension MockFuelingAPIClient {
+public extension MockHTTPClient {
 
     static let locations: [Location] = [
         Location(
