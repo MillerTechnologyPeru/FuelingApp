@@ -17,26 +17,26 @@ import CoreFueling
 /// The server base URL is injected per call; nothing is hardcoded.
 public extension HTTPClient {
 
-    /// Fetch the specified sites, or all sites if empty.
+    /// Fetch the specified locations, or all locations if empty.
     ///
     /// `GET {server}/v1/locations`
     func locations(
-        sites: [Site.ID] = [],
+        ids: [Location.ID] = [],
         server: ServerURL,
         device deviceID: String = "0"
-    ) async throws(FuelingError) -> [Location] {
-        try await request("v1/locations", sites: sites, server: server, device: deviceID)
+    ) async throws(FuelingError) -> [GetLocation] {
+        try await request("v1/locations", ids: ids, server: server, device: deviceID)
     }
 
-    /// Fetch fuel prices for the specified sites, or all sites if empty.
+    /// Fetch fuel prices for the specified locations, or all locations if empty.
     ///
     /// `GET {server}/v1/fuelprice`
     func fuelPrices(
-        for sites: [Site.ID] = [],
+        for locations: [Location.ID] = [],
         server: ServerURL,
         device deviceID: String = "0"
     ) async throws(FuelingError) -> [FuelPrice] {
-        try await request("v1/fuelprice", sites: sites, server: server, device: deviceID)
+        try await request("v1/fuelprice", ids: locations, server: server, device: deviceID)
     }
 }
 
@@ -44,11 +44,11 @@ internal extension HTTPClient {
 
     func request<T: Codable & Sendable>(
         _ path: String,
-        sites: [Site.ID],
+        ids: [Location.ID],
         server: ServerURL,
         device deviceID: String
     ) async throws(FuelingError) -> T {
-        let url = FuelingAPI.url(for: path, sites: sites, server: server)
+        let url = FuelingAPI.url(for: path, ids: ids, server: server)
         let request = HTTPRequest(
             method: .get,
             url: url,
@@ -78,16 +78,16 @@ internal extension HTTPClient {
 /// Build the request URL for an endpoint.
 internal func url(
     for path: String,
-    sites: [Site.ID],
+    ids: [Location.ID],
     server: ServerURL
 ) -> URL {
     var components = URLComponents(
         url: URL(server: server).appendingPathComponent(path),
         resolvingAgainstBaseURL: false
     )!
-    if sites.isEmpty == false {
-        components.queryItems = sites.map {
-            URLQueryItem(name: "siteIds", value: Site.ID.Prefixed(id: $0).rawValue)
+    if ids.isEmpty == false {
+        components.queryItems = ids.map {
+            URLQueryItem(name: "siteIds", value: Location.ID.Prefixed(id: $0).rawValue)
         }
     }
     return components.url!
