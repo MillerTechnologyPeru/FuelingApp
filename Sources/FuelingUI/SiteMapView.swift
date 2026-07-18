@@ -8,6 +8,9 @@ import Foundation
 import SwiftUI
 import CoreLocation
 import MapKit
+#if canImport(_MapKit_SwiftUI)
+import _MapKit_SwiftUI
+#endif
 import CoreFueling
 import FuelingModel
 
