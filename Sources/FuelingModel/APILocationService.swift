@@ -1,5 +1,5 @@
 //
-//  APISiteService.swift
+//  APILocationService.swift
 //  FuelingModel
 //
 
@@ -12,8 +12,8 @@ import CoreModel
 import CoreFueling
 import FuelingAPI
 
-/// Adapts any ``FuelingAPI/HTTPClient`` transport to ``SiteService``.
-public struct APISiteService<Client: HTTPClient>: SiteService {
+/// Adapts any ``FuelingAPI/HTTPClient`` transport to ``LocationService``.
+public struct APILocationService<Client: HTTPClient>: LocationService {
 
     /// HTTP transport executing the requests.
     public let client: Client
@@ -34,24 +34,24 @@ public struct APISiteService<Client: HTTPClient>: SiteService {
         self.deviceID = deviceID
     }
 
-    public func locations(sites: [Site.ID]) async throws(FuelingError) -> (ids: [Site.ID], data: [ModelData]) {
-        let locations = try await client.locations(sites: sites, server: server, device: deviceID)
+    public func locations(ids: [Location.ID]) async throws(FuelingError) -> (ids: [Location.ID], data: [ModelData]) {
+        let locations = try await client.locations(ids: ids, server: server, device: deviceID)
         let lastCached = Date()
-        var ids = [Site.ID]()
+        var locationIDs = [Location.ID]()
         var data = [ModelData]()
-        ids.reserveCapacity(locations.count)
+        locationIDs.reserveCapacity(locations.count)
         for location in locations {
             guard let id = location.id else {
                 continue
             }
-            ids.append(id)
+            locationIDs.append(id)
             data += ModelData.location(location, lastCached: lastCached)
         }
-        return (ids, data)
+        return (locationIDs, data)
     }
 
-    public func fuelPrices(for sites: [Site.ID]) async throws(FuelingError) -> (ids: [FuelProduct.ID], data: [ModelData]) {
-        let prices = try await client.fuelPrices(for: sites, server: server, device: deviceID)
+    public func fuelPrices(for locations: [Location.ID]) async throws(FuelingError) -> (ids: [FuelProduct.ID], data: [ModelData]) {
+        let prices = try await client.fuelPrices(for: locations, server: server, device: deviceID)
         let lastCached = Date()
         var ids = [FuelProduct.ID]()
         var data = [ModelData]()
@@ -70,7 +70,7 @@ public struct APISiteService<Client: HTTPClient>: SiteService {
 }
 
 #if canImport(FoundationNetworking) || canImport(Darwin)
-public extension APISiteService where Client == URLSession {
+public extension APILocationService where Client == URLSession {
 
     /// Build a `URLSession`-backed service for the injected server base URL.
     init(
