@@ -13,6 +13,17 @@ kotlin {
     }
 }
 
+// The fueling API's base URL, injected at build time from an environment
+// variable rather than hardcoded — mirrors `ServerURL.fromEnvironment(_:default:)`
+// on the Swift side, since an installed app has no shell environment of its
+// own to read from at runtime. Override with `-PfuelingServerUrl=...` for a
+// one-off build. Defaults to localhost; on the Android emulator (not a real
+// device), the host machine's localhost is reachable at `10.0.2.2`, not
+// `localhost` — override accordingly when running a local dev server there.
+val fuelingServerUrl: String = (findProperty("fuelingServerUrl") as String?)
+    ?: System.getenv("FUELING_SERVER_URL")
+    ?: "http://localhost:8080"
+
 android {
     namespace = "com.fuelingapp"
     compileSdk = libs.versions.androidSdkCompile.get().toInt()
@@ -26,6 +37,7 @@ android {
         ndk {
             abiFilters += "arm64-v8a"
         }
+        buildConfigField("String", "FUELING_SERVER_URL", "\"$fuelingServerUrl\"")
     }
 
     compileOptions {
@@ -35,6 +47,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
