@@ -99,18 +99,14 @@ val stageJniLibs = tasks.register<Copy>("stageJniLibs") {
         include("*.so")
         // Test-only runtime libraries are not needed by consumers.
         exclude("*Testing*", "libXCTest.so")
-        // `FuelingModel`'s dependency on `FuelingAPI` (and its
-        // `HTTPTypesFoundation`/`FoundationNetworking` transitive dependency) is
-        // excluded from the Android build entirely (see the `nonAndroidPlatforms`
-        // condition in the outer package manifest) — no network transport is
-        // wired up on Android yet. So `libFoundationNetworking.so` and XML aren't
-        // linked. Internationalization *is* linked (`Locale.measurementSystem` in
-        // `LocationsViewModel`), so unlike a project that avoids it entirely,
-        // `lib_FoundationICU.so`/`libFoundationInternationalization.so` are kept.
-        exclude(
-            "libFoundationNetworking.so",
-            "libFoundationXML.so"
-        )
+        // `FuelingModel` depends on `FuelingAPI` (real networking, via
+        // `HTTPTypesFoundation`'s `FoundationNetworking`) unconditionally now —
+        // `libFoundationNetworking.so` must be staged, or the whole native
+        // library fails to load at runtime (`UnsatisfiedLinkError: library
+        // "libFoundationNetworking.so" not found`), not just the networking
+        // call path. `libFoundationXML.so` isn't linked (no XML parsing
+        // anywhere in this app) and is the only one still excluded.
+        exclude("libFoundationXML.so")
     }
     from(File(ndkRoot, "toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/aarch64-linux-android")) {
         include("libc++_shared.so")
