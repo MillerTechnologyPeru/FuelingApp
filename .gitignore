@@ -67,7 +67,7 @@ fastlane/test_output
 # Android / Gradle (Android/)
 .gradle/
 local.properties
-*/build/
+**/build/
 .cxx/
 captures/
 *.keystore
