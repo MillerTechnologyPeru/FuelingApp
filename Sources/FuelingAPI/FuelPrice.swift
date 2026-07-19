@@ -52,16 +52,37 @@ public struct FuelPrice: Codable, Equatable, Hashable, Sendable {
 
 public extension FuelPrice {
 
-    /// Parsed `loadDate`, interpreted in the given time zone.
+    /// Parsed `loadDate` (fixed `yyyy-MM-dd'T'HH:mm:ss` format), interpreted
+    /// in the given time zone.
+    ///
+    /// Hand-parses the string with `Calendar`/`DateComponents` instead of
+    /// `DateFormatter`, which — like `NumberFormatter` — lives in full
+    /// `Foundation` (not `FoundationEssentials`). This keeps `FuelingAPI`
+    /// buildable wherever only the lean subset is linked, e.g. Android, which
+    /// this project's `#if canImport(FoundationEssentials)` /
+    /// `#elseif canImport(Foundation)` import guards prefer whenever it's
+    /// available rather than always falling back to full `Foundation`.
     func updated(in timeZone: TimeZone = .current) -> Date? {
-        FuelPrice.dateFormatter(timeZone).date(from: loadDate)
-    }
-
-    internal static func dateFormatter(_ timeZone: TimeZone) -> DateFormatter {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        formatter.timeZone = timeZone
-        return formatter
+        let fields = loadDate.split(whereSeparator: { $0 == "-" || $0 == "T" || $0 == ":" })
+        guard fields.count == 6,
+            let year = Int(fields[0]),
+            let month = Int(fields[1]),
+            let day = Int(fields[2]),
+            let hour = Int(fields[3]),
+            let minute = Int(fields[4]),
+            let second = Int(fields[5])
+        else {
+            return nil
+        }
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = day
+        components.hour = hour
+        components.minute = minute
+        components.second = second
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        return calendar.date(from: components)
     }
 }
