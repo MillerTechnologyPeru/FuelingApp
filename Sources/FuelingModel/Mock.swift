@@ -2,13 +2,6 @@
 //  Mock.swift
 //  FuelingModel
 //
-//  `FuelingAPI` (and `HTTPTypes`/`HTTPTypesFoundation` beneath it) is excluded
-//  from the Android build entirely — see the `nonAndroidPlatforms` condition
-//  on this target's dependencies in the package manifest — so this file,
-//  which mocks that transport, is excluded to match. FuelingAndroid builds its
-//  own sample data directly from `CoreFueling.Location` instead (see
-//  `FuelingSession.sampleLocationData()`).
-#if canImport(FuelingAPI)
 
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -201,5 +194,3 @@ public extension MockHTTPClient {
         return prices
     }
 }
-
-#endif
