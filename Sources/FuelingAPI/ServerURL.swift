@@ -79,3 +79,30 @@ public extension ServerURL {
         ServerURL(rawValue: "http://localhost:" + port.description)!
     }
 }
+
+// MARK: - Environment Injection
+
+public extension ServerURL {
+
+    /// Build a server URL from an environment variable, falling back to
+    /// `default` (`.localhost()`) when the variable is unset or invalid.
+    ///
+    /// Keeps the base URL out of source control entirely — inject it at
+    /// launch (e.g. an Xcode scheme's environment variables, a shell
+    /// `export`, or a CI secret) rather than hardcoding it anywhere in the
+    /// package. On Android, where installed apps don't inherit a shell
+    /// environment, the equivalent value is baked into `BuildConfig` from a
+    /// Gradle-time environment variable instead — see
+    /// `Android/app/build.gradle.kts`.
+    static func fromEnvironment(
+        _ variableName: String = "FUELING_SERVER_URL",
+        default fallback: @autoclosure () -> ServerURL = .localhost()
+    ) -> ServerURL {
+        guard let rawValue = ProcessInfo.processInfo.environment[variableName],
+            let serverURL = ServerURL(rawValue: rawValue)
+        else {
+            return fallback()
+        }
+        return serverURL
+    }
+}

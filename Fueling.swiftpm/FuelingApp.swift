@@ -5,6 +5,7 @@
 
 import SwiftUI
 import FuelingModel
+import FuelingAPI
 import FuelingUI
 
 @main
@@ -29,16 +30,19 @@ struct FuelingApp: App {
 
     /// Build the store for the demo.
     ///
-    /// Uses the bundled sample data. To run against a real deployment,
-    /// inject the server base URL instead:
+    /// Fetches from a real server, its base URL injected via the
+    /// `FUELING_SERVER_URL` environment variable (set it in the Xcode
+    /// scheme's Arguments tab, or `export` it before `swift run`) — defaults
+    /// to `http://localhost:8080` when unset. Swap in the bundled sample data
+    /// instead for an offline demo:
     ///
-    ///     let service = APILocationService(server: ServerURL(rawValue: "https://example.com")!)
-    ///     let store = try Store(locationService: service)
+    ///     let store = try Store(locationService: .mock, isStoredInMemoryOnly: true)
     ///
     @MainActor
     private func loadStore() throws -> Store {
+        let service = APILocationService(server: .fromEnvironment())
         let store = try Store(
-            locationService: .mock,
+            locationService: service,
             isStoredInMemoryOnly: true
         )
         // simulated user position near the first sample site

@@ -6,7 +6,7 @@
 public extension Location {
 
     /// Location Identifier
-    struct ID: RawRepresentable, Codable, Equatable, Hashable, Sendable {
+    struct ID: RawRepresentable, Equatable, Hashable, Sendable {
 
         public let rawValue: UInt
 
@@ -15,6 +15,11 @@ public extension Location {
         }
     }
 }
+
+// Codable relies on stdlib synthesis, which is unavailable under Embedded Swift.
+#if !hasFeature(Embedded)
+extension Location.ID: Codable {}
+#endif
 
 // MARK: - ExpressibleByIntegerLiteral
 
@@ -43,7 +48,7 @@ extension Location.ID: CustomStringConvertible, CustomDebugStringConvertible {
 public extension Location.ID {
 
     /// Location identifier in its zero-padded 4-digit wire format.
-    struct Prefixed: Codable, Equatable, Hashable, Sendable {
+    struct Prefixed: Equatable, Hashable, Sendable {
 
         internal let value: Location.ID.RawValue
 
@@ -56,6 +61,11 @@ public extension Location.ID {
         }
     }
 }
+
+// Codable relies on stdlib synthesis, which is unavailable under Embedded Swift.
+#if !hasFeature(Embedded)
+extension Location.ID.Prefixed: Codable {}
+#endif
 
 public extension Location.ID {
 

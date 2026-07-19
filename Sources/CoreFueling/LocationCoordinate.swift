@@ -8,9 +8,24 @@ import FoundationEssentials
 #elseif canImport(Foundation)
 import Foundation
 #endif
+// `sin`/`cos`/`atan2` come from Foundation on Darwin, but `FoundationEssentials`
+// — preferred above whenever it's importable, which includes Android, and
+// always true under Embedded Swift (no Foundation there at all) — doesn't
+// transitively expose libm on those platforms. Pull it from the platform's
+// own libc module directly; verified empirically (Android's `FoundationEssentials`
+// alone fails to resolve `sin`/`cos`/`atan2` when actually cross-compiled).
+#if canImport(Bionic)
+import Bionic
+#elseif canImport(WASILibc)
+import WASILibc
+#elseif canImport(Glibc)
+import Glibc
+#elseif canImport(ucrt)
+import ucrt
+#endif
 
 /// Geographic coordinate (latitude / longitude in degrees).
-public struct LocationCoordinate: Equatable, Hashable, Codable, Sendable {
+public struct LocationCoordinate: Equatable, Hashable, Sendable {
 
     /// Latitude in degrees.
     public var latitude: Double
@@ -23,6 +38,11 @@ public struct LocationCoordinate: Equatable, Hashable, Codable, Sendable {
         self.longitude = longitude
     }
 }
+
+// Codable relies on stdlib synthesis, which is unavailable under Embedded Swift.
+#if !hasFeature(Embedded)
+extension LocationCoordinate: Codable {}
+#endif
 
 public extension LocationCoordinate {
 

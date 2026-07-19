@@ -1,0 +1,107 @@
+{
+  "locations": [
+    {
+      "site_id": "0001",
+      "location_name": "Riverbend Fuel Stop",
+      "address_line_1": "482 Harbor Road",
+      "city": "Millbrook",
+      "state": "Ohio",
+      "zip_code": "44001",
+      "latitude": 41.2033,
+      "longitude": -81.5432,
+      "directions": "I-90 at Exit 12",
+      "phone_numbers": { "primary_phone_number": "555-010-0001" },
+      "fueling_options": ["Diesel", "Auto Diesel", "DEF Island Fueling", "Unleaded Gasoline"],
+      "diesel_dispenser_lanes": 8,
+      "truck_parking_spaces": 210,
+      "private_showers": 9,
+      "store_brand": "Northgate"
+    },
+    {
+      "site_id": "0002",
+      "location_name": "Pinecrest Travel Plaza",
+      "address_line_1": "1150 Timber Lane",
+      "city": "Ashford",
+      "state": "Indiana",
+      "zip_code": "46002",
+      "latitude": 39.7684,
+      "longitude": -86.1581,
+      "directions": "I-70 at Exit 27",
+      "phone_numbers": { "primary_phone_number": "555-010-0002" },
+      "fueling_options": ["Diesel", "Unleaded Gasoline"],
+      "diesel_dispenser_lanes": 6,
+      "truck_parking_spaces": 140,
+      "private_showers": 6,
+      "store_brand": "Northgate"
+    },
+    {
+      "site_id": "0003",
+      "location_name": "Cedar Junction Fuel Center",
+      "address_line_1": "3300 Old Mill Pike",
+      "city": "Brantford",
+      "state": "Kentucky",
+      "zip_code": "40003",
+      "latitude": 38.0406,
+      "longitude": -84.5037,
+      "directions": "I-64 at Exit 58",
+      "phone_numbers": { "primary_phone_number": "555-010-0003" },
+      "fueling_options": ["Diesel", "Auto Diesel", "Electric Charging Stations"],
+      "diesel_dispenser_lanes": 10,
+      "truck_parking_spaces": 260,
+      "private_showers": 12,
+      "store_brand": "Fairway"
+    },
+    {
+      "site_id": "0004",
+      "location_name": "Wheatfield Rest & Fuel",
+      "address_line_1": "77 County Road 9",
+      "city": "Dellwood",
+      "state": "Kansas",
+      "zip_code": "67004",
+      "latitude": 37.6872,
+      "longitude": -97.3301,
+      "directions": "I-35 at Exit 33",
+      "phone_numbers": { "primary_phone_number": "555-010-0004" },
+      "fueling_options": ["Diesel", "DEF Island Fueling", "Unleaded Gasoline", "Hydrogen"],
+      "diesel_dispenser_lanes": 7,
+      "truck_parking_spaces": 175,
+      "private_showers": 8,
+      "store_brand": "Fairway"
+    },
+    {
+      "site_id": "0005",
+      "location_name": "Southbend Truck Stop",
+      "address_line_1": "920 Depot Street",
+      "city": "Millhaven",
+      "state": "Tennessee",
+      "zip_code": "38005",
+      "latitude": 35.6151,
+      "longitude": -88.8140,
+      "directions": "I-40 at Exit 91",
+      "phone_numbers": { "primary_phone_number": "555-010-0005" },
+      "fueling_options": ["Diesel", "Auto Diesel", "Biodiesel Blend"],
+      "diesel_dispenser_lanes": 9,
+      "truck_parking_spaces": 230,
+      "private_showers": 10,
+      "store_brand": "Northgate"
+    }
+  ],
+  "fuel_prices": [
+    { "siteID": "0001", "price": 3.799, "productDescription": "Diesel", "loadDate": "2026-07-19T06:00:00", "fuelCode": "DSL" },
+    { "siteID": "0001", "price": 4.199, "productDescription": "DEF", "loadDate": "2026-07-19T06:00:00", "fuelCode": "DEF" },
+    { "siteID": "0001", "price": 3.099, "productDescription": "Unleaded Gasoline", "loadDate": "2026-07-19T06:00:00", "fuelCode": "UNL" },
+
+    { "siteID": "0002", "price": 3.849, "productDescription": "Diesel", "loadDate": "2026-07-19T06:00:00", "fuelCode": "DSL" },
+    { "siteID": "0002", "price": 3.149, "productDescription": "Unleaded Gasoline", "loadDate": "2026-07-19T06:00:00", "fuelCode": "UNL" },
+
+    { "siteID": "0003", "price": 3.699, "productDescription": "Diesel", "loadDate": "2026-07-19T06:00:00", "fuelCode": "DSL" },
+    { "siteID": "0003", "price": 3.899, "productDescription": "Auto Diesel", "loadDate": "2026-07-19T06:00:00", "fuelCode": "ADS" },
+
+    { "siteID": "0004", "price": 3.949, "productDescription": "Diesel", "loadDate": "2026-07-19T06:00:00", "fuelCode": "DSL" },
+    { "siteID": "0004", "price": 4.249, "productDescription": "DEF", "loadDate": "2026-07-19T06:00:00", "fuelCode": "DEF" },
+    { "siteID": "0004", "price": 3.199, "productDescription": "Unleaded Gasoline", "loadDate": "2026-07-19T06:00:00", "fuelCode": "UNL" },
+
+    { "siteID": "0005", "price": 3.749, "productDescription": "Diesel", "loadDate": "2026-07-19T06:00:00", "fuelCode": "DSL" },
+    { "siteID": "0005", "price": 3.649, "productDescription": "Biodiesel Blend", "loadDate": "2026-07-19T06:00:00", "fuelCode": "BIO" }
+  ]
+}

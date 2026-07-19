@@ -1,5 +1,5 @@
 {
-  "originHash" : "e34efb67045f7cc3e971b78d85a844a1a92e7d2eb84e1bda1647ac8614abb4c5",
+  "originHash" : "82f2ec5c978ad10e18090c86c4ba944c8aac858018c26c5aed55c62288cbae7c",
   "pins" : [
     {
       "identity" : "coremodel",
@@ -11,12 +11,39 @@
       }
     },
     {
+      "identity" : "coremodel-sqlite",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/PureSwift/CoreModel-SQLite",
+      "state" : {
+        "branch" : "master",
+        "revision" : "e96bebbb230646ffc06dda584faef5f3e9d49681"
+      }
+    },
+    {
+      "identity" : "sqlite",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/PureSwift/SQLite",
+      "state" : {
+        "branch" : "master",
+        "revision" : "19b9b5ac00c1d09d06f2a02596690709b8f47979"
+      }
+    },
+    {
       "identity" : "swift-http-types",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-http-types",
       "state" : {
         "revision" : "db774a277f60063a32d854f2980299caf06da041",
         "version" : "1.6.0"
+      }
+    },
+    {
+      "identity" : "swift-sqlcipher",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/PureSwift/swift-sqlcipher",
+      "state" : {
+        "revision" : "37a25816c4cea90b3bc6f428fc3896b82dc58915",
+        "version" : "0.1.0"
       }
     },
     {

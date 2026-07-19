@@ -24,6 +24,19 @@ struct FuelingAPITests {
     }
 
     @Test
+    func serverURLFromEnvironment() {
+        let variable = "FUELING_SERVER_URL_TEST_\(UUID().uuidString)"
+        // unset: falls back to the default
+        #expect(ServerURL.fromEnvironment(variable, default: .localhost()) == .localhost())
+        // set: uses the environment value
+        setenv(variable, "https://example.com", 1)
+        #expect(ServerURL.fromEnvironment(variable, default: .localhost()) == ServerURL(rawValue: "https://example.com")!)
+        unsetenv(variable)
+        // unset again after cleanup: back to the default
+        #expect(ServerURL.fromEnvironment(variable, default: .localhost()) == .localhost())
+    }
+
+    @Test
     func requestURL() {
         let server = ServerURL(rawValue: "https://example.com")!
         let url = FuelingAPI.url(for: "v1/fuelprice", ids: [15, 23], server: server)
@@ -106,7 +119,18 @@ struct FuelingAPITests {
         #expect(price.location == 15)
         #expect(price.product == .fuelPrice("DSL", location: 15))
         #expect(price.price == 3.899)
-        #expect(price.updated() != nil)
+        let updated = try #require(price.updated(in: TimeZone(identifier: "UTC")!))
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        let components = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: updated)
+        #expect(components.year == 2026)
+        #expect(components.month == 7)
+        #expect(components.day == 17)
+        #expect(components.hour == 6)
+        #expect(components.minute == 0)
+        #expect(components.second == 0)
+        // malformed input doesn't crash, just fails to parse
+        #expect(FuelPrice(siteID: "0015", price: 0, productDescription: "", loadDate: "garbage", fuelCode: "X").updated() == nil)
     }
 
     @Test
