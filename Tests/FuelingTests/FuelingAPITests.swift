@@ -24,6 +24,19 @@ struct FuelingAPITests {
     }
 
     @Test
+    func serverURLFromEnvironment() {
+        let variable = "FUELING_SERVER_URL_TEST_\(UUID().uuidString)"
+        // unset: falls back to the default
+        #expect(ServerURL.fromEnvironment(variable, default: .localhost()) == .localhost())
+        // set: uses the environment value
+        setenv(variable, "https://example.com", 1)
+        #expect(ServerURL.fromEnvironment(variable, default: .localhost()) == ServerURL(rawValue: "https://example.com")!)
+        unsetenv(variable)
+        // unset again after cleanup: back to the default
+        #expect(ServerURL.fromEnvironment(variable, default: .localhost()) == .localhost())
+    }
+
+    @Test
     func requestURL() {
         let server = ServerURL(rawValue: "https://example.com")!
         let url = FuelingAPI.url(for: "v1/fuelprice", ids: [15, 23], server: server)
