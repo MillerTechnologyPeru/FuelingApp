@@ -31,12 +31,28 @@ wired up here yet: `FuelingSession` builds an offline `Store` (SQLite-backed,
 
 - A **swift.org** Swift toolchain (not Xcode's) matching the Android Swift SDK
   you install — mismatched toolchain/SDK versions produce incompatible
-  `.swiftmodule`s. This repo was last built against Swift 6.3.3.
+  `.swiftmodule`s. This repo is built against Swift 6.3.3.
 - The matching **Android Swift SDK** artifact bundle for that toolchain
-  version, installed via `swift sdk install`. As of this writing,
-  [swift-android-sdk](https://github.com/swift-android-sdk/swift-android-sdk)'s
-  latest published release is `6.2`, not `6.3.3` — check for a newer release,
-  or build the SDK yourself, before cross-compiling.
+  version. `swift-android-sdk`'s GitHub releases lag behind — get the
+  matching bundle directly from `download.swift.org` instead and install it
+  with the **matching swift.org toolchain's** `swift` binary (not Xcode's):
+
+  ```sh
+  curl -O https://download.swift.org/swift-6.3.3-release/android-sdk/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE_android.artifactbundle.tar.gz
+  ~/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift \
+    sdk install swift-6.3.3-RELEASE_android.artifactbundle.tar.gz
+  ```
+
+  Then run the bundle's own setup script once, pointed at your NDK — it
+  symlinks the NDK's sysroot into the SDK bundle (`sdkRootPath` in
+  `swift-sdk.json` references it, but it doesn't exist until this runs;
+  skipping it produces confusing `'jni.h' file not found`-style errors deep
+  in unrelated C targets):
+
+  ```sh
+  ANDROID_NDK_HOME=~/Library/Android/sdk/ndk/27.2.12479018 \
+    bash ~/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/scripts/setup-android-sdk.sh
+  ```
 - Android SDK (`compileSdk`/`minSdk` per `gradle/libs.versions.toml`) and NDK
   (a version providing `libc++_shared.so` for `arm64-v8a`; `27.2.12479018` is
   known to work) — point `local.properties`'s `sdk.dir` and, if it differs
@@ -45,6 +61,11 @@ wired up here yet: `FuelingSession` builds an offline `Store` (SQLite-backed,
 - A JDK compatible with the Gradle version in `gradle/wrapper` (Gradle 8.14.5
   cannot parse very new JDK version strings, e.g. 26 — JDK 17 or 21 is safe;
   set `JAVA_HOME` explicitly if your default `java` is newer).
+
+With all of the above in place, `./gradlew :app:assembleDebug` successfully
+cross-compiles the app end to end — verified installed and running on a real
+Android emulator (locations list, search, and location detail screens all
+render live data from the Swift `Store` over JNI).
 
 ## Building
 
