@@ -20,15 +20,22 @@ and SQLite (`Store(sqliteDatabase:)`, cross-platform — used on Android/Linux).
 
 ## Running the app
 
-Open `Fueling.swiftpm` in Xcode or Swift Playgrounds and run. The demo uses
-bundled sample data (`MockHTTPClient`) with an in-memory store, so it
-works offline.
-
-To run against a real server, inject the base URL:
+Open `Fueling.swiftpm` in Xcode or Swift Playgrounds and run. It fetches from
+a real server whose base URL is injected via the `FUELING_SERVER_URL`
+environment variable (set it in the Xcode scheme's Arguments tab, or `export`
+it before `swift run`) — nothing is hardcoded, and it defaults to
+`http://localhost:8080` when unset:
 
 ```swift
-let service = APILocationService(server: ServerURL(rawValue: "https://api.example.com")!)
+let service = APILocationService(server: .fromEnvironment())
 let store = try Store(locationService: service)
+```
+
+For an offline demo instead, use the bundled sample data with an in-memory
+store:
+
+```swift
+let store = try Store(locationService: .mock, isStoredInMemoryOnly: true)
 ```
 
 ## Usage
@@ -56,10 +63,12 @@ that exports `FuelingModel`/`CoreFueling` to Kotlin over JNI using
 [swift-java](https://github.com/swiftlang/swift-java) (jextract). See
 `Android/README.md` for the build/toolchain requirements.
 
-The Android build excludes `FuelingAPI` (and its `HTTPTypesFoundation`/
-`FoundationNetworking` dependency) from the dependency graph entirely — no
-network transport is wired up there yet, so the app persists to a local
-SQLite cache seeded with sample data and works fully offline.
+Like the playground app, it fetches from a real server via `URLSession`
+(`FoundationNetworking`), with the base URL injected from the
+`FUELING_SERVER_URL` environment variable at Gradle build time (baked into
+`BuildConfig`, since an installed app has no shell environment of its own to
+read at runtime) — defaulting to `http://localhost:8080`. Persistence is a
+local SQLite cache, same as the rest of the package.
 
 ## Tests
 
