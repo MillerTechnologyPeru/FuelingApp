@@ -38,6 +38,16 @@ store:
 let store = try Store(locationService: .mock, isStoredInMemoryOnly: true)
 ```
 
+Or run a real (fake-data) server locally instead of relying on the in-process
+mock — `Scripts/test-server.py` serves `Scripts/test-data.json` (a flat-file
+"database", edit and reload without restarting the server) over the same
+`/v1/locations`/`/v1/fuelprice` shape the real API uses:
+
+```sh
+python3 Scripts/test-server.py            # http://localhost:8080
+FUELING_SERVER_URL=http://localhost:8080 swift run   # or set it in Xcode
+```
+
 ## Usage
 
 ```swift
@@ -68,7 +78,10 @@ Like the playground app, it fetches from a real server via `URLSession`
 `FUELING_SERVER_URL` environment variable at Gradle build time (baked into
 `BuildConfig`, since an installed app has no shell environment of its own to
 read at runtime) — defaulting to `http://localhost:8080`. Persistence is a
-local SQLite cache, same as the rest of the package.
+local SQLite cache, same as the rest of the package. Point an emulator at
+`Scripts/test-server.py` running on the host with
+`-PfuelingServerUrl=http://10.0.2.2:8080` (`10.0.2.2` is the emulator's alias
+for the host's `localhost`).
 
 ## Tests
 
