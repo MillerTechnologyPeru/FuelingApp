@@ -82,17 +82,26 @@ class FuelingViewModel : ViewModel() {
     private var detailScreen: LocationDetailScreen? = null
     private var detailPollJob: Job? = null
 
-    /** Idempotent: safe to call from `LaunchedEffect(Unit)` across recompositions. */
-    fun start(documentsPath: String) {
+    /**
+     * Idempotent: safe to call from `LaunchedEffect(Unit)` across recompositions.
+     *
+     * @param serverUrl Base URL of the fueling API (typically
+     *   [BuildConfig.FUELING_SERVER_URL]), or blank to run fully offline —
+     *   only then does this seed the local cache with sample data, since no
+     *   network fetch will ever populate it.
+     */
+    fun start(documentsPath: String, serverUrl: String) {
         if (pollJob != null) return
 
         val arena = SwiftArena.ofConfined()
         this.arena = arena
         pollJob = viewModelScope.launch {
             try {
-                val session = FuelingSession.init(documentsPath, arena)
+                val session = FuelingSession.init(documentsPath, serverUrl, arena)
                 this@FuelingViewModel.session = session
-                session.seedSampleLocations()
+                if (serverUrl.isBlank()) {
+                    session.seedSampleLocations()
+                }
                 val screen = session.makeLocationsScreen(arena)
                 this@FuelingViewModel.screen = screen
                 screen.reload()
