@@ -12,6 +12,7 @@ import Foundation
 #endif
 import CoreModel
 import CoreFueling
+import FuelingAPI
 import FuelingModel
 #if os(Android)
 import AndroidLooper
@@ -38,11 +39,12 @@ import AndroidLooper
 /// thread, before any `Store`/view-model work is scheduled.
 ///
 /// ## Networking
-/// There is no network transport wired up on Android yet — the `Store` is built
-/// with `locationService: nil`, so persistence, search and view models work
-/// against the local SQLite cache, seeded with sample data via
-/// ``seedSampleLocations()``, while any call that would reach the network
-/// throws `FuelingError.serviceUnavailable`.
+/// The `Store` is built with a real `APILocationService<URLSession>` pointed
+/// at the injected `serverURL` (see ``init(documentsPath:serverURL:)``), so
+/// persistence, search and view models fetch from that server the same way
+/// they do on Darwin. Pass an empty or invalid URL to run fully offline
+/// instead — seed a starting point with ``seedSampleLocations()`` in that
+/// case, since no network call will ever populate the cache.
 public final class FuelingSession {
 
     let store: Store
@@ -56,14 +58,21 @@ public final class FuelingSession {
 
     /// Create a session whose SQLite database lives under `documentsPath`
     /// (pass the Android `Context.getFilesDir()` path).
-    public init(documentsPath: String) throws {
+    ///
+    /// - Parameter serverURL: Base URL of the fueling API (e.g.
+    ///   `BuildConfig.FUELING_SERVER_URL`, itself injected from the
+    ///   `FUELING_SERVER_URL` environment variable at Gradle build time,
+    ///   defaulting to `http://localhost:8080`). Empty or unparsable strings
+    ///   fall back to running fully offline rather than throwing.
+    public init(documentsPath: String, serverURL: String) throws {
         #if os(Android)
         _ = Self.setUpMainLooper
         #endif
         let directory = URL(fileURLWithPath: documentsPath, isDirectory: true)
         let databasePath = directory.appendingPathComponent("Fueling.sqlite").path
+        let locationService = ServerURL(rawValue: serverURL).map { APILocationService(server: $0) }
         self.store = try MainActor.assumeIsolated {
-            try Store(sqliteDatabase: databasePath)
+            try Store(sqliteDatabase: databasePath, locationService: locationService)
         }
     }
 
