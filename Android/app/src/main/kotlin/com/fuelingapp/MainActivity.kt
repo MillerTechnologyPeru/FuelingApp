@@ -59,7 +59,11 @@ class MainActivity : ComponentActivity() {
                     // out via the manifest anymore) — without this padding, the title
                     // and back button drew underneath the status bar's clock/icons.
                     Box(modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing)) {
-                        FuelingScreen(viewModel, documentsPath = filesDir.absolutePath)
+                        FuelingScreen(
+                            viewModel,
+                            documentsPath = filesDir.absolutePath,
+                            serverUrl = BuildConfig.FUELING_SERVER_URL,
+                        )
                     }
                 }
             }
@@ -68,11 +72,11 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun FuelingScreen(viewModel: FuelingViewModel, documentsPath: String) {
+fun FuelingScreen(viewModel: FuelingViewModel, documentsPath: String, serverUrl: String) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        viewModel.start(documentsPath)
+        viewModel.start(documentsPath, serverUrl)
     }
 
     val selectedLocation = state.selectedLocation
