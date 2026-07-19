@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  swift-package:
+    name: Build & Test Swift Package
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Swift version
+        run: swift --version
+      - name: Build
+        run: swift build
+      - name: Test
+        run: swift test
+
+  ios-playground:
+    name: Build iOS Playground App
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Fueling.swiftpm for iOS Simulator
+        working-directory: Fueling.swiftpm
+        run: |
+          xcodebuild build \
+            -scheme Fueling \
+            -destination 'generic/platform=iOS Simulator' \
+            -skipMacroValidation
+
+  android:
+    name: Build Android App
+    runs-on: ubuntu-latest
+    env:
+      SWIFT_VERSION: "6.3.3"
+      NDK_VERSION: "27.2.12479018"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK
+        run: sdkmanager --install "ndk;${NDK_VERSION}"
+
+      - name: Install Swift toolchain
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: ${{ env.SWIFT_VERSION }}
+
+      - name: Install Android Swift SDK
+        run: |
+          curl -O "https://download.swift.org/swift-${SWIFT_VERSION}-release/android-sdk/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle.tar.gz"
+          swift sdk install "swift-${SWIFT_VERSION}-RELEASE_android.artifactbundle.tar.gz"
+
+          bundle_dir=$(dirname "$(find "$HOME" -path '*swift-sdks*swift-android/scripts/setup-android-sdk.sh' 2>/dev/null | head -n1)")
+          ANDROID_NDK_HOME="$ANDROID_SDK_ROOT/ndk/${NDK_VERSION}" bash "$bundle_dir/setup-android-sdk.sh"
+
+      - name: Configure local.properties
+        working-directory: Android
+        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+
+      - name: Build Android app
+        working-directory: Android
+        run: ./gradlew :app:assembleDebug --no-daemon
