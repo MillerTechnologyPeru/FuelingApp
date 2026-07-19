@@ -8,18 +8,20 @@ import FoundationEssentials
 #elseif canImport(Foundation)
 import Foundation
 #endif
-// `sin`/`cos`/`atan2` come from Foundation on non-Embedded platforms; Embedded
-// Swift has no Foundation, so pull them from the platform libm directly.
-#if hasFeature(Embedded)
-#if canImport(WASILibc)
+// `sin`/`cos`/`atan2` come from Foundation on Darwin, but `FoundationEssentials`
+// — preferred above whenever it's importable, which includes Android, and
+// always true under Embedded Swift (no Foundation there at all) — doesn't
+// transitively expose libm on those platforms. Pull it from the platform's
+// own libc module directly; verified empirically (Android's `FoundationEssentials`
+// alone fails to resolve `sin`/`cos`/`atan2` when actually cross-compiled).
+#if canImport(Bionic)
+import Bionic
+#elseif canImport(WASILibc)
 import WASILibc
 #elseif canImport(Glibc)
 import Glibc
-#elseif canImport(Darwin)
-import Darwin
 #elseif canImport(ucrt)
 import ucrt
-#endif
 #endif
 
 /// Geographic coordinate (latitude / longitude in degrees).
