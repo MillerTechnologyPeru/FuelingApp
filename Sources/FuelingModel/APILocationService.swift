@@ -2,12 +2,6 @@
 //  APILocationService.swift
 //  FuelingModel
 //
-//  `FuelingAPI` (and `HTTPTypesFoundation`'s conditional `FoundationNetworking`
-//  import beneath it) is excluded from the Android build entirely — see the
-//  `nonAndroidPlatforms` condition on this target's dependencies in the
-//  package manifest — so this file, which only exists to adapt that transport,
-//  is excluded to match.
-#if canImport(FuelingAPI)
 
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -75,7 +69,16 @@ public struct APILocationService<Client: HTTPClient>: LocationService {
     }
 }
 
-#if canImport(FoundationNetworking) || canImport(Darwin)
+// `URLSession` lives in full `Foundation` (via `FoundationNetworking` on
+// non-Darwin platforms, including Android), not `FoundationEssentials` — the
+// top-level import above prefers the lean subset whenever it's importable,
+// so this extension imports what it actually needs directly rather than
+// relying on that.
+#if canImport(Foundation)
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
 public extension APILocationService where Client == URLSession {
 
     /// Build a `URLSession`-backed service for the injected server base URL.
@@ -91,6 +94,4 @@ public extension APILocationService where Client == URLSession {
         )
     }
 }
-#endif
-
 #endif
