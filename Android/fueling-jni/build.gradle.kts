@@ -41,9 +41,15 @@ val swiftToolchainVersion: String = (findProperty("swiftToolchainVersion") as St
 val swiftBin: String = (findProperty("swiftBin") as String?)
     ?: "$userHome/Library/Developer/Toolchains/swift-$swiftToolchainVersion-RELEASE.xctoolchain/usr/bin/swift"
 
-// swift-java's `enableJavaCallbacks` feature would need its own JDK 25 sub-build;
-// unused here (see Android/Sources/FuelingAndroid/swift-java.config), so no
-// `jdk25Home` property is needed.
+// swift-java's `enableJavaCallbacks` feature (used for the `AndroidHTTPTransport`
+// JNI callback) runs its own internal Gradle sub-build during `swift build` to
+// compile the generated Java callback interfaces against its SwiftKitCore module —
+// independent of whatever JDK runs *this* Gradle build, and requiring a one-time
+// network fetch of that sub-build's own Gradle distribution after a `.build` wipe.
+// Override with `-Pjdk25Home=/path/to/jdk` where Homebrew's prefix doesn't apply
+// (e.g. CI).
+val jdk25Home: String = (findProperty("jdk25Home") as String?)
+    ?: "/opt/homebrew/opt/openjdk@25"
 
 // The first path segment is the lowercased *directory name* of the Swift package
 // (SwiftPM's `outputs/<dir>/<TargetName>/...` convention) — "android" here, since
@@ -71,6 +77,7 @@ val ndkRoot = File(
 val jextract = tasks.register<Exec>("jextract") {
     workingDir = swiftPackageRoot
     environment("SWIFT_BUILD_DYNAMIC_LIBRARY", "1")
+    environment("JAVA_HOME", jdk25Home)
     commandLine(
         swiftBin, "build",
         "--swift-sdk", androidTriple,
@@ -99,14 +106,13 @@ val stageJniLibs = tasks.register<Copy>("stageJniLibs") {
         include("*.so")
         // Test-only runtime libraries are not needed by consumers.
         exclude("*Testing*", "libXCTest.so")
-        // `FuelingModel` depends on `FuelingAPI` (real networking, via
-        // `HTTPTypesFoundation`'s `FoundationNetworking`) unconditionally now —
-        // `libFoundationNetworking.so` must be staged, or the whole native
-        // library fails to load at runtime (`UnsatisfiedLinkError: library
-        // "libFoundationNetworking.so" not found`), not just the networking
-        // call path. `libFoundationXML.so` isn't linked (no XML parsing
-        // anywhere in this app) and is the only one still excluded.
-        exclude("libFoundationXML.so")
+        // Networking goes through the Kotlin `AndroidHTTPTransport` JNI
+        // callback (`HttpURLConnection`), not `URLSession`, so
+        // `libFoundationNetworking.so` is no longer in any library's
+        // DT_NEEDED chain (verified with `llvm-readobj --needed-libs`) and
+        // isn't staged. `libFoundationXML.so` isn't linked either (no XML
+        // parsing anywhere in this app).
+        exclude("libFoundationXML.so", "libFoundationNetworking.so")
     }
     from(File(ndkRoot, "toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/aarch64-linux-android")) {
         include("libc++_shared.so")
