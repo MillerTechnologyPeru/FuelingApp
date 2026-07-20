@@ -107,12 +107,25 @@ val stageJniLibs = tasks.register<Copy>("stageJniLibs") {
         // Test-only runtime libraries are not needed by consumers.
         exclude("*Testing*", "libXCTest.so")
         // Networking goes through the Kotlin `AndroidHTTPTransport` JNI
-        // callback (`HttpURLConnection`), not `URLSession`, so
-        // `libFoundationNetworking.so` is no longer in any library's
+        // callback (`HttpURLConnection`), not `URLSession`, and every library
+        // in the graph prefers `FoundationEssentials` over the full
+        // `Foundation` umbrella — so `libFoundationNetworking.so`,
+        // `libFoundation.so`, `libFoundationInternationalization.so`, and the
+        // ~42 MB `lib_FoundationICU.so` are all absent from every library's
         // DT_NEEDED chain (verified with `llvm-readobj --needed-libs`) and
-        // isn't staged. `libFoundationXML.so` isn't linked either (no XML
-        // parsing anywhere in this app).
-        exclude("libFoundationXML.so", "libFoundationNetworking.so")
+        // aren't staged. `libFoundationXML.so` isn't linked either (no XML
+        // parsing anywhere in this app). If a stray full-`Foundation` import
+        // sneaks back into the graph, the app fails to load with an
+        // `UnsatisfiedLinkError` naming the missing library — re-check the
+        // autolink entries (`llvm-readelf -p .swift1_autolink_entries`) to
+        // find the culprit object file.
+        exclude(
+            "libFoundationXML.so",
+            "libFoundationNetworking.so",
+            "libFoundation.so",
+            "libFoundationInternationalization.so",
+            "lib_FoundationICU.so"
+        )
     }
     from(File(ndkRoot, "toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/aarch64-linux-android")) {
         include("libc++_shared.so")
