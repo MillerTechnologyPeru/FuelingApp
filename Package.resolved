@@ -1,5 +1,5 @@
 {
-  "originHash" : "82f2ec5c978ad10e18090c86c4ba944c8aac858018c26c5aed55c62288cbae7c",
+  "originHash" : "d0598e83f2b2806716655b5032a402046dd1efdff757df1d642ead8b025cb10a",
   "pins" : [
     {
       "identity" : "coremodel",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/PureSwift/CoreModel-SQLite",
       "state" : {
         "branch" : "master",
-        "revision" : "e96bebbb230646ffc06dda584faef5f3e9d49681"
+        "revision" : "07b8c3ab7e7e7f687b1fb4b56c66689289fa960f"
       }
     },
     {
