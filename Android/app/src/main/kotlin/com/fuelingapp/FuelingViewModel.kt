@@ -97,7 +97,7 @@ class FuelingViewModel : ViewModel() {
         this.arena = arena
         pollJob = viewModelScope.launch {
             try {
-                val session = FuelingSession.init(documentsPath, serverUrl, arena)
+                val session = FuelingSession.init(documentsPath, serverUrl, HttpURLConnectionTransport(), arena)
                 this@FuelingViewModel.session = session
                 if (serverUrl.isBlank()) {
                     session.seedSampleLocations()
