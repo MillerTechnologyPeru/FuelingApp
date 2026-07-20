@@ -39,12 +39,14 @@ import AndroidLooper
 /// thread, before any `Store`/view-model work is scheduled.
 ///
 /// ## Networking
-/// The `Store` is built with a real `APILocationService<URLSession>` pointed
-/// at the injected `serverURL` (see ``init(documentsPath:serverURL:)``), so
-/// persistence, search and view models fetch from that server the same way
-/// they do on Darwin. Pass an empty or invalid URL to run fully offline
-/// instead — seed a starting point with ``seedSampleLocations()`` in that
-/// case, since no network call will ever populate the cache.
+/// The `Store` is built with an `APILocationService` whose transport is a
+/// Kotlin/Java-implemented ``AndroidHTTPTransport`` callback (see
+/// ``init(documentsPath:serverURL:transport:)``), pointed at the injected
+/// `serverURL` — persistence, search and view models fetch from that server
+/// the same way they do on Darwin, without linking `FoundationNetworking`/ICU.
+/// Pass an empty or invalid URL to run fully offline instead — seed a
+/// starting point with ``seedSampleLocations()`` in that case, since no
+/// network call will ever populate the cache.
 public final class FuelingSession {
 
     let store: Store
@@ -64,13 +66,25 @@ public final class FuelingSession {
     ///   `FUELING_SERVER_URL` environment variable at Gradle build time,
     ///   defaulting to `http://localhost:8080`). Empty or unparsable strings
     ///   fall back to running fully offline rather than throwing.
-    public init(documentsPath: String, serverURL: String) throws {
+    /// - Parameter transport: Kotlin/Java-implemented HTTP transport (e.g.
+    ///   wrapping `HttpURLConnection`) performing the actual requests — see
+    ///   ``AndroidHTTPTransport``.
+    public init(documentsPath: String, serverURL: String, transport: any AndroidHTTPTransport) throws {
         #if os(Android)
         _ = Self.setUpMainLooper
         #endif
         let directory = URL(fileURLWithPath: documentsPath, isDirectory: true)
         let databasePath = directory.appendingPathComponent("Fueling.sqlite").path
-        let locationService = ServerURL(rawValue: serverURL).map { APILocationService(server: $0) }
+        // Plain `if let` rather than `Optional.map` — the typed-throws
+        // `Optional.map` thunk crashed (SIGSEGV) on Android when the closure
+        // captured the JNI-wrapped `transport` existential.
+        let locationService: (any LocationService)?
+        if let server = ServerURL(rawValue: serverURL) {
+            let client = AndroidHTTPClient(transport: transport)
+            locationService = APILocationService(client: client, server: server) as any LocationService
+        } else {
+            locationService = nil
+        }
         self.store = try MainActor.assumeIsolated {
             try Store(sqliteDatabase: databasePath, locationService: locationService)
         }
@@ -119,10 +133,8 @@ public final class FuelingSession {
 extension FuelingSession {
 
     /// A few sample locations, built directly from the `CoreFueling` domain
-    /// types (not the network DTOs — `FuelingAPI`/`HTTPTypesFoundation`'s
-    /// `FoundationNetworking` dependency is excluded from the Android build
-    /// entirely, see the package manifest), so the Locations screen has data
-    /// without a real network transport.
+    /// types, so the Locations screen has data when running offline (blank or
+    /// unparsable `serverURL`).
     static func sampleLocationData() -> [ModelData] {
         let fuelOptions: [FuelOption] = [
             FuelOption(id: .diesel, name: "Diesel"),
