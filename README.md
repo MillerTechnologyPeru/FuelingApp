@@ -73,12 +73,15 @@ that exports `FuelingModel`/`CoreFueling` to Kotlin over JNI using
 [swift-java](https://github.com/swiftlang/swift-java) (jextract). See
 `Android/README.md` for the build/toolchain requirements.
 
-Like the playground app, it fetches from a real server via `URLSession`
-(`FoundationNetworking`), with the base URL injected from the
-`FUELING_SERVER_URL` environment variable at Gradle build time (baked into
-`BuildConfig`, since an installed app has no shell environment of its own to
-read at runtime) — defaulting to `http://localhost:8080`. Persistence is a
-local SQLite cache, same as the rest of the package. Point an emulator at
+Like the playground app, it fetches from a real server — but through a
+Kotlin-implemented `HTTPClient` transport (`HttpURLConnection` behind a
+swift-java JNI callback) rather than `URLSession`, keeping
+`FoundationNetworking` and its ICU dependency chain out of the Android build
+entirely. The base URL is injected from the `FUELING_SERVER_URL` environment
+variable at Gradle build time (baked into `BuildConfig`, since an installed
+app has no shell environment of its own to read at runtime) — defaulting to
+`http://localhost:8080`. Persistence is a local SQLite cache, same as the
+rest of the package. Point an emulator at
 `Scripts/test-server.py` running on the host with
 `-PfuelingServerUrl=http://10.0.2.2:8080` (`10.0.2.2` is the emulator's alias
 for the host's `localhost`).

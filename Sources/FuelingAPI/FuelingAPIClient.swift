@@ -9,7 +9,6 @@ import FoundationEssentials
 import Foundation
 #endif
 import HTTPTypes
-import HTTPTypesFoundation
 import CoreFueling
 
 /// Fueling REST API, implemented over any ``HTTPClient`` transport.
@@ -48,10 +47,25 @@ internal extension HTTPClient {
         server: ServerURL,
         device deviceID: String
     ) async throws(FuelingError) -> T {
-        let url = FuelingAPI.url(for: path, ids: ids, server: server)
+        // Built from URLComponents rather than `HTTPRequest(method:url:...)` —
+        // that convenience initializer lives in `HTTPTypesFoundation`, whose
+        // `URLSession` bridging drags `FoundationNetworking` (and its ~42 MB
+        // ICU dependency chain) into the Android link. Pure `HTTPTypes` keeps
+        // this module transport-agnostic on every platform.
+        let components = FuelingAPI.urlComponents(for: path, ids: ids, server: server)
+        var requestPath = components.percentEncodedPath.isEmpty ? "/" : components.percentEncodedPath
+        if let query = components.percentEncodedQuery {
+            requestPath += "?" + query
+        }
+        var authority = components.host ?? ""
+        if let port = components.port {
+            authority += ":" + port.description
+        }
         let request = HTTPRequest(
             method: .get,
-            url: url,
+            scheme: components.scheme,
+            authority: authority,
+            path: requestPath,
             headerFields: [
                 .deviceID: deviceID
             ]
@@ -75,12 +89,12 @@ internal extension HTTPClient {
     }
 }
 
-/// Build the request URL for an endpoint.
-internal func url(
+/// Build the request URL components for an endpoint.
+internal func urlComponents(
     for path: String,
     ids: [Location.ID],
     server: ServerURL
-) -> URL {
+) -> URLComponents {
     var components = URLComponents(
         url: URL(server: server).appendingPathComponent(path),
         resolvingAgainstBaseURL: false
@@ -90,7 +104,7 @@ internal func url(
             URLQueryItem(name: "siteIds", value: Location.ID.Prefixed(id: $0).rawValue)
         }
     }
-    return components.url!
+    return components
 }
 
 public extension HTTPField.Name {

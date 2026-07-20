@@ -3,7 +3,11 @@
 //  FuelingAPI
 //
 
-#if canImport(Foundation)
+// Excluded on Android: the app there supplies its own JNI-callback transport
+// (see `FuelingAndroid`), and merely linking `HTTPTypesFoundation`'s
+// `URLSession` bridge would pull `FoundationNetworking` + its ~42 MB ICU
+// dependency chain into every Android build.
+#if canImport(Foundation) && !os(Android)
 import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking

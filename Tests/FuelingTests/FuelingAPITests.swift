@@ -39,9 +39,9 @@ struct FuelingAPITests {
     @Test
     func requestURL() {
         let server = ServerURL(rawValue: "https://example.com")!
-        let url = FuelingAPI.url(for: "v1/fuelprice", ids: [15, 23], server: server)
+        let url = FuelingAPI.urlComponents(for: "v1/fuelprice", ids: [15, 23], server: server).url!
         #expect(url.absoluteString == "https://example.com/v1/fuelprice?siteIds=0015&siteIds=0023")
-        let allURL = FuelingAPI.url(for: "v1/locations", ids: [], server: server)
+        let allURL = FuelingAPI.urlComponents(for: "v1/locations", ids: [], server: server).url!
         #expect(allURL.absoluteString == "https://example.com/v1/locations")
     }
 

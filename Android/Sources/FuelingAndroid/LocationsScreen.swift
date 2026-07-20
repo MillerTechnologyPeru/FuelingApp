@@ -32,8 +32,7 @@ public final class LocationsScreen {
 
     // MARK: - Lifecycle
 
-    /// Reload the location list (fetches from the local cache; networking is
-    /// not yet wired up on Android).
+    /// Reload the location list from cache and (when stale) the network.
     public func reload() {
         MainActor.assumeIsolated { viewModel.reload() }
     }
