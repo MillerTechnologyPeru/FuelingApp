@@ -36,6 +36,15 @@ let package = Package(
         .target(
             name: "FuelingAndroid",
             dependencies: [
+                // NOTE: no explicit FuelingAPI/HTTPTypes product dependencies —
+                // both are statically embedded in the dynamic FuelingModel
+                // product, and adding them as products creates a SECOND copy of
+                // the `HTTPClient` protocol descriptor (`libFuelingAPI.so` +
+                // the copy inside `libFuelingModel.so`), which breaks runtime
+                // conformance lookup for `AndroidHTTPClient: HTTPClient`
+                // (null witness table → SIGSEGV when copying the
+                // `any LocationService` existential). Their modules remain
+                // importable transitively through the build graph.
                 .product(name: "FuelingModel", package: "FuelingApp"),
                 .product(name: "CoreFueling", package: "FuelingApp"),
                 .product(
