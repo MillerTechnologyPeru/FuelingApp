@@ -24,6 +24,10 @@ val swiftPackageRoot: File = rootProject.projectDir
 val androidTriple = "aarch64-unknown-linux-android28"
 val swiftAbi = "arm64-v8a"
 val userHome: String = System.getProperty("user.home")
+val hostIsMac: Boolean = System.getProperty("os.name").lowercase().contains("mac")
+// NDK prebuilt-toolchain host tag (only x86_64 host prebuilts ship, even on
+// arm64 macs — Rosetta/binfmt handle it).
+val ndkHostTag: String = if (hostIsMac) "darwin-x86_64" else "linux-x86_64"
 
 // Configuration the Swift wrapper is cross-compiled with. This is independent of
 // the Android build type: an `assembleRelease` still gets a debug `.so` unless this
@@ -39,7 +43,11 @@ val swiftToolchainVersion: String = (findProperty("swiftToolchainVersion") as St
 // toolchain (Apple's Xcode Swift produces incompatible `.swiftmodule`s).
 // Override with `-PswiftBin=/path/to/swift` if installed elsewhere.
 val swiftBin: String = (findProperty("swiftBin") as String?)
-    ?: "$userHome/Library/Developer/Toolchains/swift-$swiftToolchainVersion-RELEASE.xctoolchain/usr/bin/swift"
+    ?: if (hostIsMac) {
+        "$userHome/Library/Developer/Toolchains/swift-$swiftToolchainVersion-RELEASE.xctoolchain/usr/bin/swift"
+    } else {
+        "swift" // Linux: swift.org toolchains go on PATH, no Xcode to collide with
+    }
 
 // swift-java's `enableJavaCallbacks` feature (used for the `AndroidHTTPTransport`
 // JNI callback) runs its own internal Gradle sub-build during `swift build` to
@@ -58,9 +66,11 @@ val jdk25Home: String = (findProperty("jdk25Home") as String?)
 val generatedJavaDir = File(swiftPackageRoot, ".build/plugins/outputs/android/FuelingAndroid/destination/JExtractSwiftPlugin/src/generated/java")
 val swiftKitCoreDir = File(swiftPackageRoot, ".build/checkouts/swift-java/SwiftKitCore/src/main/java")
 val swiftBuildDir = File(swiftPackageRoot, ".build/$androidTriple/$swiftBuildConfig")
+// SwiftPM's swift-sdks directory differs per host OS.
+val swiftSdksDir: String = if (hostIsMac) "$userHome/Library/org.swift.swiftpm/swift-sdks" else "$userHome/.swiftpm/swift-sdks"
 val swiftAndroidRuntimeDir = File(
     (findProperty("swiftAndroidRuntimeDir") as String?)
-        ?: "$userHome/Library/org.swift.swiftpm/swift-sdks/swift-${swiftToolchainVersion}-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/android"
+        ?: "$swiftSdksDir/swift-${swiftToolchainVersion}-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/android"
 )
 
 // Supplies libc++_shared.so, which every Swift Android binary links against. CI
@@ -127,7 +137,7 @@ val stageJniLibs = tasks.register<Copy>("stageJniLibs") {
             "lib_FoundationICU.so"
         )
     }
-    from(File(ndkRoot, "toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/aarch64-linux-android")) {
+    from(File(ndkRoot, "toolchains/llvm/prebuilt/$ndkHostTag/sysroot/usr/lib/aarch64-linux-android")) {
         include("libc++_shared.so")
     }
 }
