@@ -58,10 +58,17 @@ jobs:
       - name: Install Android NDK
         run: sdkmanager --install "ndk;${NDK_VERSION}"
 
+      # swift-actions/setup-swift doesn't know 6.3.3 yet ("Version is not
+      # available"), so install the swift.org toolchain directly.
       - name: Install Swift toolchain
-        uses: swift-actions/setup-swift@v2
-        with:
-          swift-version: ${{ env.SWIFT_VERSION }}
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq binutils git gnupg2 libc6-dev libcurl4-openssl-dev \
+            libedit2 libgcc-13-dev libpython3-dev libsqlite3-0 libstdc++-13-dev \
+            libxml2-dev libz3-dev pkg-config tzdata unzip zlib1g-dev
+          curl -sL "https://download.swift.org/swift-${SWIFT_VERSION}-release/ubuntu2404/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE-ubuntu24.04.tar.gz" | tar xz -C "$HOME"
+          echo "$HOME/swift-${SWIFT_VERSION}-RELEASE-ubuntu24.04/usr/bin" >> "$GITHUB_PATH"
+          "$HOME/swift-${SWIFT_VERSION}-RELEASE-ubuntu24.04/usr/bin/swift" --version
 
       - name: Install Android Swift SDK
         run: |
@@ -75,6 +82,13 @@ jobs:
         working-directory: Android
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
+      # jdk25Home's default is a macOS Homebrew path; any JDK 17+ works for
+      # swift-java's callbacks sub-build, so reuse the runner's JDK. swiftBin's
+      # default is the macOS toolchain path, so point it at the PATH-installed
+      # swift from the toolchain step above.
       - name: Build Android app
         working-directory: Android
-        run: ./gradlew :app:assembleDebug --no-daemon
+        run: |
+          ./gradlew :app:assembleDebug --no-daemon \
+            -PswiftBin="$(command -v swift)" \
+            -Pjdk25Home="$JAVA_HOME"
