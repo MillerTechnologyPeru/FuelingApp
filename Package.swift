@@ -3,7 +3,17 @@ import PackageDescription
 import class Foundation.ProcessInfo
 
 let darwin: [Platform] = [.macOS, .iOS, .tvOS, .watchOS, .visionOS, .macCatalyst]
-let nonAndroidPlatforms: [Platform] = darwin + [.linux, .windows, .wasi, .openbsd]
+// Platforms whose Foundation ships a usable `URLSession` networking stack, so
+// `HTTPTypesFoundation`'s `URLSession: HTTPClient` bridge can be linked.
+// Excludes Android (JNI-callback transport, see `FuelingAndroid`) and wasm
+// (JavaScriptKit `fetch` transport, see `Web/`) — both provide their own
+// `HTTPClient` and must not drag in `FoundationNetworking`.
+let urlSessionPlatforms: [Platform] = darwin + [.linux, .windows, .openbsd]
+// Platforms the SQLite persistence backend supports. Excludes wasm: the SQLite
+// package's SQLCipher/libtomcrypt C code fails to compile for `wasm32-unknown-wasip1`
+// (it needs `_WASI_EMULATED_SIGNAL`), so the browser app uses the in-memory
+// store (`Store(inMemory:)`) instead of `Store(sqliteDatabase:)`.
+let sqlitePlatforms: [Platform] = darwin + [.linux, .windows, .android, .openbsd]
 
 // The Android jextract/JNI build (see Android/fueling-jni/build.gradle.kts) cross-compiles
 // this package with this flag set, so every library in the graph — including this package's
@@ -47,7 +57,7 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/PureSwift/CoreModel.git",
-            from: "2.8.0"
+            from: "2.10.0"
         ),
         .package(
             url: "https://github.com/apple/swift-http-types",
@@ -90,7 +100,7 @@ let package = Package(
                 .product(
                     name: "HTTPTypesFoundation",
                     package: "swift-http-types",
-                    condition: .when(platforms: nonAndroidPlatforms)
+                    condition: .when(platforms: urlSessionPlatforms)
                 )
             ]
         ),
@@ -114,11 +124,13 @@ let package = Package(
                 ),
                 .product(
                     name: "CoreModelSQLite",
-                    package: "CoreModel-SQLite"
+                    package: "CoreModel-SQLite",
+                    condition: .when(platforms: sqlitePlatforms)
                 ),
                 .product(
                     name: "SQLite",
-                    package: "SQLite"
+                    package: "SQLite",
+                    condition: .when(platforms: sqlitePlatforms)
                 )
             ]
         ),
