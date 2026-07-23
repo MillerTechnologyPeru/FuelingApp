@@ -1,13 +1,13 @@
 {
-  "originHash" : "d0598e83f2b2806716655b5032a402046dd1efdff757df1d642ead8b025cb10a",
+  "originHash" : "8395e2e32ae08588577a2030c55a4ebaf8f5db87cd61dad3bb35e9125823a155",
   "pins" : [
     {
       "identity" : "coremodel",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/PureSwift/CoreModel.git",
       "state" : {
-        "revision" : "2fc6856cd47d376acd50e66e8c798894a4b5ffe3",
-        "version" : "2.8.1"
+        "revision" : "790cfe9680a8705907a73898620a431a2c087bb2",
+        "version" : "2.10.0"
       }
     },
     {
