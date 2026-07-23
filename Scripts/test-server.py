@@ -86,6 +86,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"port to listen on (default: {DEFAULT_PORT})")
     parser.add_argument(
+        "--bind",
+        default="127.0.0.1",
+        help="interface to listen on (default loopback; use 0.0.0.0 to serve "
+        "emulators that reach the host over NAT, e.g. the DS port)",
+    )
+    parser.add_argument(
         "--data",
         type=Path,
         default=DEFAULT_DATA_PATH,
@@ -98,9 +104,9 @@ def main() -> None:
         raise SystemExit(1)
 
     Handler.data_path = args.data
-    server = HTTPServer(("127.0.0.1", args.port), Handler)
+    server = HTTPServer((args.bind, args.port), Handler)
     print(f"Fueling test server serving fake data from {args.data}")
-    print(f"Listening on http://127.0.0.1:{args.port}  (GET /v1/locations, GET /v1/fuelprice)")
+    print(f"Listening on http://{args.bind}:{args.port}  (GET /v1/locations, GET /v1/fuelprice)")
     print("Press Ctrl-C to stop.")
     try:
         server.serve_forever()
