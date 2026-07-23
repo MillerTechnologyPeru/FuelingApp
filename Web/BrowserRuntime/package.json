@@ -1,0 +1,13 @@
+{
+  "name": "elementary-ui-browser-runtime",
+  "version": "0.1.0",
+  "description": "Bundled browser runtime for ElementaryUI (vendored, prebuilt dist)",
+  "type": "module",
+  "license": "Apache-2.0 AND MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  }
+}
