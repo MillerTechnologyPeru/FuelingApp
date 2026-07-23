@@ -3,11 +3,13 @@
 //  FuelingAPI
 //
 
-// Excluded on Android: the app there supplies its own JNI-callback transport
-// (see `FuelingAndroid`), and merely linking `HTTPTypesFoundation`'s
-// `URLSession` bridge would pull `FoundationNetworking` + its ~42 MB ICU
-// dependency chain into every Android build.
-#if canImport(Foundation) && !os(Android)
+// Excluded on Android and wasm: each supplies its own transport (a JNI-callback
+// client in `FuelingAndroid`, a JavaScriptKit `fetch` client in `Web/`), and
+// `HTTPTypesFoundation` isn't linked there anyway — on Android it would drag in
+// `FoundationNetworking` + its ~42 MB ICU chain, and on wasm `URLSession` has
+// no networking backend. The manifest drops the product on both (see
+// `urlSessionPlatforms`); the `!os(WASI)` guard keeps this file from importing it.
+#if canImport(Foundation) && !os(Android) && !os(WASI)
 import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
