@@ -22,6 +22,13 @@ import WASILibc
 import Glibc
 #elseif canImport(ucrt)
 import ucrt
+#elseif hasFeature(Embedded)
+// Bare-metal Embedded targets (e.g. the Nintendo DS port) have no importable
+// libc module at all; bind the libm symbols directly — the platform C library
+// (newlib on devkitARM, linked via `-lm`) provides them at link time.
+@_silgen_name("sin") private func sin(_ x: Double) -> Double
+@_silgen_name("cos") private func cos(_ x: Double) -> Double
+@_silgen_name("atan2") private func atan2(_ y: Double, _ x: Double) -> Double
 #endif
 
 /// Geographic coordinate (latitude / longitude in degrees).
