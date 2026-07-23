@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Fueling</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --bg: #0b0d10;
+      --card: #161a20;
+      --card-hover: #1d222a;
+      --text: #e7ebf0;
+      --muted: #97a1ad;
+      --accent: #4c8dff;
+      --border: #262c35;
+    }
+    html, body { margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    #app { max-width: 720px; margin: 0 auto; padding: 16px; }
+  </style>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script type="module" src="./index.ts"></script>
+</body>
+
+</html>
