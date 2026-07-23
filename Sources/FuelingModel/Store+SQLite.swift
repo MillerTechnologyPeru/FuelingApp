@@ -3,6 +3,11 @@
 //  FuelingModel
 //
 
+// Gated to platforms where the SQLite backend is available (see
+// `sqlitePlatforms` in Package.swift). On wasm the SQLite package's C code
+// doesn't compile, so the modules aren't in the graph there and this whole
+// file compiles away — the browser app uses `Store(inMemory:)` instead.
+#if canImport(CoreModelSQLite)
 import CoreModel
 import CoreModelSQLite
 import SQLite
@@ -31,3 +36,4 @@ public extension Store {
         )
     }
 }
+#endif

@@ -1,10 +1,10 @@
 {
-  "originHash" : "8395e2e32ae08588577a2030c55a4ebaf8f5db87cd61dad3bb35e9125823a155",
+  "originHash" : "17c184a29087ac4e1dfcec5fa376f5f5cbeed804643a3a787cc28b515af86991",
   "pins" : [
     {
       "identity" : "coremodel",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/PureSwift/CoreModel.git",
+      "location" : "https://github.com/PureSwift/CoreModel",
       "state" : {
         "revision" : "790cfe9680a8705907a73898620a431a2c087bb2",
         "version" : "2.10.0"
@@ -20,12 +20,48 @@
       }
     },
     {
+      "identity" : "elementary",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/elementary-swift/elementary",
+      "state" : {
+        "revision" : "b0ff5d1353308a1aead140dfed4ad4fcb4455008",
+        "version" : "0.8.0"
+      }
+    },
+    {
+      "identity" : "elementary-ui",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/elementary-swift/elementary-ui",
+      "state" : {
+        "revision" : "91fe191af532ea29c0f3330f0a2ad07eba1b1b76",
+        "version" : "0.5.0"
+      }
+    },
+    {
+      "identity" : "javascriptkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftwasm/JavaScriptKit",
+      "state" : {
+        "revision" : "22905075f8b61834810babe5fb9a2f613f22f398",
+        "version" : "0.56.1"
+      }
+    },
+    {
       "identity" : "sqlite",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/PureSwift/SQLite",
       "state" : {
         "branch" : "master",
         "revision" : "19b9b5ac00c1d09d06f2a02596690709b8f47979"
+      }
+    },
+    {
+      "identity" : "swift-collections",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-collections",
+      "state" : {
+        "revision" : "a0cb0954ecb21e4e31b0070e6ed5674e8556685a",
+        "version" : "1.6.0"
       }
     },
     {

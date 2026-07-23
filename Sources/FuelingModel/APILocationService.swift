@@ -73,9 +73,10 @@ public struct APILocationService<Client: HTTPClient>: LocationService {
 // non-Darwin platforms), not `FoundationEssentials` — the top-level import
 // above prefers the lean subset whenever it's importable, so this extension
 // imports what it actually needs directly rather than relying on that.
-// Excluded on Android, where the transport is a JNI-callback client instead
-// (see `FuelingAndroid`) and `URLSession: HTTPClient` does not exist.
-#if canImport(Foundation) && !os(Android)
+// Excluded on Android and wasm, where the transport is a JNI-callback client
+// (see `FuelingAndroid`) / a JavaScriptKit `fetch` client (see `Web/`) and
+// `URLSession: HTTPClient` does not exist.
+#if canImport(Foundation) && !os(Android) && !os(WASI)
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
